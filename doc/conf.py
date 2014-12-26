@@ -188,13 +188,27 @@ htmlhelp_basename = 'sbusrdoc'
 
 latex_elements = {
 # The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+'papersize': 'a4paper',
 
 # The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+'pointsize': '12pt',
+
+'label': '\\usepackage[english]{babel}',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
+'preamble': '''
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Courier}
+\usepackage{indentfirst}
+\setlength{\parindent}{2em}
+\setCJKmainfont[BoldFont=SimSun, ItalicFont=SimSun]{SimSun}
+\setCJKmonofont[Scale=0.9]{SimSun}
+\setCJKfamilyfont{song}[BoldFont=SimSun]{SimSun}
+\setCJKfamilyfont{sf}[BoldFont=SimSun]{SimSun}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+''',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

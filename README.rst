@@ -3,7 +3,7 @@
 ########
 
 介绍
-#######
+######
 
 ``sbusr`` 读作 ``s-bus-ser`` (IPA: ``sbʌsə``)，是 `和声 <http://www.hesong.net>`_ IPSC 的远程方法提供程序。
 
@@ -12,6 +12,16 @@
 开发者可自行编写 ``sbusr`` 的 RPC 方法，为 IPSC 提供各种不同的扩展功能。
 
 IPSC 流程需要特殊的节点或者自定义函数，通过SmartBus以及相应的插件访问 ``sbusr`` 。
+
+代码库
+#######
+
+http://github.com/Hesong-OpenSource/sbusr.git
+
+文档
+#####
+
+http://hesong-ipsc-sbusr.readthedocs.org/
 
 如何运行 sbusr
 #################
@@ -154,13 +164,3 @@ Python3.4 以及以上版本已经在标准库中包含了虚拟环境 `venv <ht
     python run_sbusr.py --help
 
 查看其具体的命令行参数
-
-代码库
-#################
-
-见 https://github.com/Hesong-OpenSource/sbusr.git
-
-文档
-#################
-
-见 https://readthedocs.org/projects/hesong-ipsc-sbusr/
