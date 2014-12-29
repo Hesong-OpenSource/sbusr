@@ -25,7 +25,7 @@ except ImportError:
 try:
     from logging.handlers import QueueListener
 except ImportError:
-    from queuelistener import QueueListener
+    from loggingqueue import QueueListener
 from functools import partial
 
 import jsonrpc
@@ -278,7 +278,12 @@ def _subproc_init(progargs, logging_queue, logging_root_level):
         logging.root.handlers.clear()
     except AttributeError:
         del logging.root.handlers[:]
-    logging.root.addHandler(logging.handlers.QueueHandler(logging_queue))
+    try:
+        QueueHandlerClass = logging.handlers.QueueHandler
+    except AttributeError:
+        import loggingqueue
+        QueueHandlerClass = loggingqueue.QueueHandler
+    logging.root.addHandler(QueueHandlerClass(logging_queue))
     logging.root.setLevel(logging_root_level)
     logging.info('subproc init')
     globalvars.prog_args = progargs
