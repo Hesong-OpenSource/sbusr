@@ -19,7 +19,7 @@ import jsonrpc
 import executor
 import globalvars
 
-from . import faketypes
+from tests import faketypes
 
 logging_fmt = logging.Formatter(fmt='%(asctime)s <%(processName)-10s,%(threadName)-10s> %(levelname)-8s %(name)s - %(message)s')
 logging_handler = logging.StreamHandler()
