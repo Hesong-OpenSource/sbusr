@@ -10,6 +10,9 @@
 import time
 import logging
 
+def add(a, b):
+    '''加法'''
+    return a + b
 
 def echo(txt: str) -> str:
     '''原样返回收到的内容
@@ -19,7 +22,7 @@ def echo(txt: str) -> str:
     return txt
 
 
-def summary(*args):
+def plus(*args):
     '''求和'''
     return sum(args)
 
