@@ -5,31 +5,38 @@
 :author: 刘雪彦
 '''
 
+from __future__ import absolute_import
+
 import unittest
 
 import uuid
 import json
 import logging
-import os
 import threading
-
-os.chdir('..')
 
 import jsonrpc
 import executor
 import globalvars
 
-from tests import faketypes
+
+class Object:
+    pass
+
+
+class PackInfo:
+    def __init__(self, srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType):
+        self.srcUnitId = srcUnitId
+        self.srcUnitClientId = srcUnitClientId
+        self.srcUnitClientType = srcUnitClientType
+        self.dstUnitId = dstUnitId
+        self.dstUnitClientId = dstUnitClientId
+        self.dstUnitClientType = dstUnitClientType
 
 logging_fmt = logging.Formatter(fmt='%(asctime)s <%(processName)-10s,%(threadName)-10s> %(levelname)-8s %(name)s - %(message)s')
 logging_handler = logging.StreamHandler()
 logging_handler.setFormatter(logging_fmt)
-logging.root.handlers.clear()
+del logging.root.handlers[:]
 logging.root.handlers.append(logging_handler)
-
-
-class Object:
-    pass
 
 
 class TestProcessPoolExecutor(unittest.TestCase):
@@ -65,9 +72,9 @@ class TestProcessPoolExecutor(unittest.TestCase):
         }
         #
         packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
-        pack = faketypes.FakePackInfo(*packinfo_args)
+        pack = PackInfo(*packinfo_args)
         #
-        client = faketypes.FakeSbClient()        
+        client = Object()        
         def _send(cmd, cmdType, dstUnitId, dstClientId, dstClientType, data, encoding=None):
             try:
                 self.assertEqual(cmdType, executor.CMDTYPE_JSONRPC_RES)
@@ -92,7 +99,8 @@ class TestProcessPoolExecutor(unittest.TestCase):
         self.executor.put(client, pack, json.dumps(req))
         waited = _cond.wait(timeout=1)
         _cond.release()
-        self.assertTrue(waited)
+        if waited is not None:
+            self.assertTrue(waited)
         #
         
     def test_sleep(self):
@@ -106,9 +114,9 @@ class TestProcessPoolExecutor(unittest.TestCase):
         }
         #
         packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
-        pack = faketypes.FakePackInfo(*packinfo_args)
+        pack = PackInfo(*packinfo_args)
         #
-        client = faketypes.FakeSbClient()        
+        client = Object()        
         def _send(cmd, cmdType, dstUnitId, dstClientId, dstClientType, data, encoding=None):
             try:
                 self.assertEqual(cmdType, executor.CMDTYPE_JSONRPC_RES)
@@ -133,7 +141,8 @@ class TestProcessPoolExecutor(unittest.TestCase):
         self.executor.put(client, pack, json.dumps(req))
         waited = _cond.wait(timeout=1.5)
         _cond.release()
-        self.assertTrue(waited)
+        if waited is not None:
+            self.assertTrue(waited)
         #
         
     def test_sleep_timeout(self):
@@ -147,9 +156,9 @@ class TestProcessPoolExecutor(unittest.TestCase):
         }
         #
         packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
-        pack = faketypes.FakePackInfo(*packinfo_args)
+        pack = PackInfo(*packinfo_args)
         #
-        client = faketypes.FakeSbClient()        
+        client = Object()        
         def _send(cmd, cmdType, dstUnitId, dstClientId, dstClientType, data, encoding=None):
             try:
                 self.assertEqual(cmdType, executor.CMDTYPE_JSONRPC_RES)
@@ -174,7 +183,8 @@ class TestProcessPoolExecutor(unittest.TestCase):
         self.executor.put(client, pack, json.dumps(req))
         waited = _cond.wait(timeout=0.5)
         _cond.release()
-        self.assertFalse(waited)
+        if waited is not None:
+            self.assertFalse(waited)
         #
         
     def test_exception(self):
@@ -188,9 +198,9 @@ class TestProcessPoolExecutor(unittest.TestCase):
         }
         #
         packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
-        pack = faketypes.FakePackInfo(*packinfo_args)
+        pack = PackInfo(*packinfo_args)
         #
-        client = faketypes.FakeSbClient()        
+        client = Object()        
         def _send(cmd, cmdType, dstUnitId, dstClientId, dstClientType, data, encoding=None):
             try:
                 self.assertEqual(cmdType, executor.CMDTYPE_JSONRPC_RES)
@@ -214,7 +224,8 @@ class TestProcessPoolExecutor(unittest.TestCase):
         self.executor.put(client, pack, json.dumps(req))
         waited = _cond.wait(timeout=1)
         _cond.release()
-        self.assertTrue(waited)
+        if waited is not None:
+            self.assertTrue(waited)
         #
 
 
@@ -229,9 +240,9 @@ class TestProcessPoolExecutor(unittest.TestCase):
         }
         #
         packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
-        pack = faketypes.FakePackInfo(*packinfo_args)
+        pack = PackInfo(*packinfo_args)
         #
-        client = faketypes.FakeSbClient()        
+        client = Object()        
         def _send(cmd, cmdType, dstUnitId, dstClientId, dstClientType, data, encoding=None):
             try:
                 self.assertEqual(cmdType, executor.CMDTYPE_JSONRPC_RES)
@@ -255,7 +266,8 @@ class TestProcessPoolExecutor(unittest.TestCase):
         self.executor.put(client, pack, json.dumps(req))
         waited = _cond.wait(timeout=1)
         _cond.release()
-        self.assertTrue(waited)
+        if waited is not None:
+            self.assertTrue(waited)
         
 
     def test_wrong_args(self):
@@ -269,9 +281,9 @@ class TestProcessPoolExecutor(unittest.TestCase):
         }
         #
         packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
-        pack = faketypes.FakePackInfo(*packinfo_args)
+        pack = PackInfo(*packinfo_args)
         #
-        client = faketypes.FakeSbClient()        
+        client = Object()        
         def _send(cmd, cmdType, dstUnitId, dstClientId, dstClientType, data, encoding=None):
             try:
                 self.assertEqual(cmdType, executor.CMDTYPE_JSONRPC_RES)
@@ -295,7 +307,8 @@ class TestProcessPoolExecutor(unittest.TestCase):
         self.executor.put(client, pack, json.dumps(req))
         waited = _cond.wait(timeout=1)
         _cond.release()
-        self.assertTrue(waited)
+        if waited is not None:
+            self.assertTrue(waited)
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

@@ -22,7 +22,10 @@ try:
     import queue
 except ImportError:
     import Queue as queue
-from logging.handlers import QueueListener
+try:
+    from logging.handlers import QueueListener
+except ImportError:
+    from queuelistener import QueueListener
 from functools import partial
 
 import jsonrpc
