@@ -24,12 +24,56 @@ from functools import partial
 
 import smartbus.netclient
 import smartbus.ipcclient
+from smartbus._c_smartbus import SMARTBUS_NODECLI_TYPE_IPSC
+
+from tornado import ioloop, web, httpserver
 
 import settings
 import globalvars
 import executor
+import webhandlers
 
 _executor = None
+'''全局 RPC 执行器
+
+进程池模式中，它仅在主进程有效
+
+类型是 :class:`executor.Executor`
+'''
+
+
+def _smartbus_global_connect(unitid, clientid, clienttype, accessunit, status, ext_info):
+    logging.getLogger('smartbusclient').debug(
+            'smartbus global connect. '
+            'unitid=%s, clientid=%s, clienttype=%s, accessunit=%s, status=%s, ext_info=%s',
+            unitid, clientid, clienttype, accessunit, status, ext_info
+    )
+    if clienttype == SMARTBUS_NODECLI_TYPE_IPSC:
+        if status == 0:  # 丢失连接
+            logging.getLogger('smartbusclient').warn(
+                    'IPSC<%s:%s> connection lost',
+                    unitid, clientid, clienttype
+            )
+            try:
+                globalvars.ipsc_set.remove((unitid, clientid))
+            except KeyError:
+                logging.getLogger('smartbusclient').warn(
+                         'IPSC<%s:%s> not found in the list',
+                         unitid, clientid
+                )
+        elif status == 1:  # 新建连接
+            logging.getLogger('smartbusclient').info(
+                     'IPSC<%s:%s> connection created',
+                     unitid, clientid
+            )
+            globalvars.ipsc_set.add((unitid, clientid))
+        else:  # 存在连接
+            logging.getLogger('smartbusclient').debug(
+                      'IPSC<%s:%s> connection confirmed',
+                      unitid, clientid
+            )
+            globalvars.ipsc_set.add((unitid, clientid))
+
 
 def _smartbus_connect_success(client, unit_id):
     logging.getLogger('smartbusclient').info(
@@ -50,6 +94,22 @@ def _smartbus_disconnected(client):
 
 def _smartbus_receive_text(client, pack_info, txt):
     _executor.put(client, pack_info, txt)
+    
+
+def _smartbus_invoke_flow_err(packInfo, project, invokeId, errno):
+    try:
+        err = webhandlers.FlowInvokeErr(packInfo, project, invokeId, errno)
+        webhandlers.FlowHandler.set_flow_err(err)
+    except:
+        logging.getLogger('smartbusclient').exception('_smartbus_invoke_flow_err')
+
+
+def _smartbus_invoke_flow_ack(packInfo, project, invokeId, ack, msg):
+    try:
+        ack = webhandlers.FlowInvokeAck(packInfo, project, invokeId, ack, msg)
+        webhandlers.FlowHandler.set_flow_ack(ack)
+    except:
+        logging.getLogger('smartbusclient').exception('_smartbus_invoke_flow_ack')
 
 
 def startup(args):
@@ -81,7 +141,7 @@ def startup(args):
     print('initialize main logger')
     if not globalvars.main_logging_queue:
         print('create main_logging_queue')
-        globalvars.main_logging_queue = multiprocessing.Queue()
+        globalvars.main_logging_queue = multiprocessing.queues.Queue()
     if not globalvars.main_logging_listener:
         print('create main_logging_listener')
         globalvars.main_logging_listener = logging.handlers.QueueListener(
@@ -103,37 +163,46 @@ def startup(args):
     # 初始化 SmartBus 客户端
     smartbus_type = settings.SMARTBUS_CONFIG['type'].strip().upper()
     if smartbus_type == 'NET':
-        logging.info('init smartbus net client')
         unitid = settings.SMARTBUS_CONFIG['initialize']['unitid']
+        logging.info('init smartbus net client <%s>', unitid)
         smartbus.netclient.Client.initialize(unitid)
         for kwd in settings.SMARTBUS_CONFIG['clients']:
-            smartbus_client = smartbus.netclient.Client(**kwd)
-            smartbus_client.onConnectSuccess = partial(_smartbus_connect_success, smartbus_client)
-            smartbus_client.onConnectFail = partial(_smartbus_connect_fail, smartbus_client)
-            smartbus_client.onDisconnect = partial(_smartbus_disconnected, smartbus_client)
-            smartbus_client.onReceiveText = partial(_smartbus_receive_text, smartbus_client)
-            smartbus_client.connect()
+            logging.info('create smartbus net client (%s)', kwd)
+            _sbc = smartbus.netclient.Client(**kwd)
+            _sbc.onConnectSuccess = partial(_smartbus_connect_success, _sbc)
+            _sbc.onConnectFail = partial(_smartbus_connect_fail, _sbc)
+            _sbc.onDisconnect = partial(_smartbus_disconnected, _sbc)
+            _sbc.onReceiveText = partial(_smartbus_receive_text, _sbc)
+            _sbc.onInvokeFlowError = partial(_smartbus_invoke_flow_err, _sbc)
+            _sbc.onInvokeFlowAcknowledge = partial(_smartbus_invoke_flow_ack, _sbc)
+            _sbc.connect()
+            globalvars.net_smartbusclients.append(_sbc)
     elif smartbus_type == 'IPC':
-        logging.info('init smartbus ipc client')
         clientid = settings.SMARTBUS_CONFIG['initialize']['clientid']
         clienttype = settings.SMARTBUS_CONFIG['initialize']['clienttype']
+        logging.info('init smartbus ipc client<%s(%s)>', clientid, clienttype)
         smartbus.ipcclient.Client.initialize(clientid, clienttype)
-        smartbus_client = smartbus.ipcclient.Client.instance(**settings.SMARTBUS_CONFIG.get('instance', {}))
-        smartbus_client.onConnectSuccess = partial(_smartbus_connect_success, smartbus_client)
-        smartbus_client.onConnectFail = partial(_smartbus_connect_fail, smartbus_client)
-        smartbus_client.onDisconnect = partial(_smartbus_disconnected, smartbus_client)
-        smartbus_client.onReceiveText = partial(_smartbus_receive_text, smartbus_client)
-        smartbus_client.connect()
+        _sbc = smartbus.ipcclient.Client.instance(**settings.SMARTBUS_CONFIG.get('instance', {}))
+        _sbc.onConnectSuccess = partial(_smartbus_connect_success, _sbc)
+        _sbc.onConnectFail = partial(_smartbus_connect_fail, _sbc)
+        _sbc.onDisconnect = partial(_smartbus_disconnected, _sbc)
+        _sbc.onReceiveText = partial(_smartbus_receive_text, _sbc)
+        _sbc.onInvokeFlowError = partial(_smartbus_invoke_flow_err, _sbc)
+        _sbc.onInvokeFlowAcknowledge = partial(_smartbus_invoke_flow_ack, _sbc)
+        _sbc.connect()
+        globalvars.ipc_smartbusclient = _sbc
 
-    #
+    # startup settings' auto-reload
     start_auto_reload_settings()
 
-    #
-    while True:
-        if PY3K:
-            input()
-        else:
-            raw_input()
+    # setup tornado-web server
+    application = web.Application([
+        (r"/flow", webhandlers.FlowHandler),
+    ])
+    http_server = httpserver.HTTPServer(application)
+    http_server.listen(*settings.WEBSERVER_LISTEN)
+    ioloop.IOLoop.instance().start()
+
 
 
 def reload_settings():

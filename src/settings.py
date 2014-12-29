@@ -122,6 +122,16 @@ METHODS_RELOAD_INTERVAL = 180
 '''
 
 
+WEBSERVER_LISTEN = (
+    8080,  # 监听端口
+    "",    # 监听地址
+)
+"""WEB 服务器监听地址与端口.
+
+.. warning:: 不得删除该变量，不得修改该变量的结构。
+"""
+
+
 LOGGING_CONFIG = {
     "version": 1,
     "root": {

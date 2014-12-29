@@ -1,5 +1,5 @@
 modules
-========
+=======
 
 .. toctree::
    :maxdepth: 4
@@ -7,7 +7,9 @@ modules
    executor
    globalvars
    jsonrpc
+   loggingqueue
    methods
    run_sbusr
    server
    settings
+   webhandlers
