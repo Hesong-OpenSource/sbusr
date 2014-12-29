@@ -2,10 +2,10 @@
 自述
 ########
 
-travis-ci
-``````````
+ci状态
+#######
 
-master:
+`master` 分支:
 
   .. image:: https://travis-ci.org/Hesong-OpenSource/sbusr.svg?branch=master
       :target: https://travis-ci.org/Hesong-OpenSource/sbusr
