@@ -2,6 +2,14 @@
 自述
 ########
 
+travis-ci
+``````````
+
+master:
+
+  .. image:: https://travis-ci.org/Hesong-OpenSource/sbusr.svg?branch=master
+      :target: https://travis-ci.org/Hesong-OpenSource/sbusr
+
 介绍
 ######
 
