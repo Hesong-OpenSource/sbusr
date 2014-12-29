@@ -18,9 +18,11 @@ sbusr 文档
 
    命令行 <cli>
 
-   编写自定义方法 <custom-methods>
+   编写自定义RPC <custom-methods>
 
    IPSC 集成 <ipsc-integration>
+
+   配置 <settings>
 
    APIs <api/modules>
 

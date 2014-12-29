@@ -16,7 +16,7 @@ IPSC 流程需要特殊的节点或者自定义函数，通过SmartBus以及相�
 代码库
 #######
 
-http://github.com/Hesong-OpenSource/sbusr.git
+http://github.com/Hesong-OpenSource/sbusr
 
 文档
 #####

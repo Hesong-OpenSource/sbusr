@@ -75,7 +75,8 @@ class Executor(QueueListener):
             self._pool = Pool(
                 pool_processes,
                 _subproc_init,
-                (globalvars.prog_args, globalvars.main_logging_queue, logging.root.level),
+                (globalvars.prog_args,
+                 globalvars.main_logging_queue, logging.root.level),
                 pool_maxtasksperchild
             )
         elif pool_model_name == 'ThreadPool':
@@ -124,7 +125,7 @@ class Executor(QueueListener):
                                 'jsonrpc': jsonrpc.jsonrpc_version,
                                 'id': _id,
                                 'error': {
-                                    'code':-32500,
+                                    'code': -32500,
                                     'message': '{} {}'.format(type(error), error),
                                     'data': None,
                                 }
@@ -136,7 +137,7 @@ class Executor(QueueListener):
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').debug(
                                 'call back:\n    result=%s %s\n    duration=%s\n    request=%s',
-                                type(result), result, time.time() - 
+                                type(result), result, time.time() -
                                 begin_time, record
                             )
                         if _id:
@@ -166,12 +167,14 @@ class Executor(QueueListener):
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').exception(
                                 'error callback:\n    duration=%s\n    request=%s:\n  %s %s',
-                                time.time() - begin_time, record, type(error), error
+                                time.time() -
+                                begin_time, record, type(error), error
                             )
                         else:
                             logging.getLogger('Executor').error(
                                 'error callback:\n    %s %s\n    duration=%s\n    request=%s\n  %s %s',
-                                type(error), error, time.time() - begin_time, record, type(error), error
+                                type(error), error, time.time() -
+                                begin_time, record, type(error), error
                             )
                         if _id:
                             if isinstance(error, jsonrpc.Error):
@@ -182,7 +185,7 @@ class Executor(QueueListener):
                                     'jsonrpc': jsonrpc.jsonrpc_version,
                                     'id': _id,
                                     'error': {
-                                        'code':-32500,
+                                        'code': -32500,
                                         'message': '{} {}'.format(type(error), error),
                                         'data': None,
                                     }
@@ -204,14 +207,14 @@ class Executor(QueueListener):
                         'apply_async to %s', _poolfunc)
                 if sys.version_info[0] < 3:
                     self._pool.apply_async(
-                            partial(_poolfunc, _method),
-                            _args, _kwargs, _callback
-                        )
+                        partial(_poolfunc, _method),
+                        _args, _kwargs, _callback
+                    )
                 else:
                     self._pool.apply_async(
-                           partial(_poolfunc, _method),
-                           _args, _kwargs, _callback, _error_callback
-                        )
+                        partial(_poolfunc, _method),
+                        _args, _kwargs, _callback, _error_callback
+                    )
 
         except Exception as e:
             if globalvars.prog_args.more_detailed_logging:
