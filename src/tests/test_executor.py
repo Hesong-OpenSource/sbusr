@@ -6,13 +6,14 @@
 '''
 
 import unittest
-from unittest.mock import MagicMock
 
 import uuid
 import json
 import logging
-import time
+import os
 import threading
+
+os.chdir('..')
 
 import jsonrpc
 import executor
