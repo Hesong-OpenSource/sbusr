@@ -274,7 +274,10 @@ def _poolfunc(method, *args, **kwargs):
 
 
 def _subproc_init(progargs, logging_queue, logging_root_level):
-    logging.root.handlers.clear()
+    try:
+        logging.root.handlers.clear()
+    except AttributeError:
+        del logging.root.handlers[:]
     logging.root.addHandler(logging.handlers.QueueHandler(logging_queue))
     logging.root.setLevel(logging_root_level)
     logging.info('subproc init')
