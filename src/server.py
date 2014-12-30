@@ -197,7 +197,7 @@ def startup(args):
 
     # setup tornado-web server
     application = web.Application([
-        (r"/flow", webhandlers.FlowHandler),
+        (r"/api/flow", webhandlers.FlowHandler),
     ])
     http_server = httpserver.HTTPServer(application)
     http_server.listen(*settings.WEBSERVER_LISTEN)
