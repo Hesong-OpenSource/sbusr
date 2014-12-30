@@ -94,17 +94,19 @@ def _smartbus_disconnected(client):
 
 def _smartbus_receive_text(client, pack_info, txt):
     _executor.put(client, pack_info, txt)
-    
-
-def _smartbus_invoke_flow_err(packInfo, project, invokeId, errno):
-    try:
-        err = webhandlers.FlowInvokeErr(packInfo, project, invokeId, errno)
-        webhandlers.FlowHandler.set_flow_err(err)
-    except:
-        logging.getLogger('smartbusclient').exception('_smartbus_invoke_flow_err')
 
 
 def _smartbus_invoke_flow_ack(packInfo, project, invokeId, ack, msg):
+    if ack == 1:
+        logging.getLogger('smartbusclient').debug(
+              '_smartbus_invoke_flow_ack(packInfo=%s, project=%s, invokeId=%s, ack=%s, msg=%s)',
+              packInfo, project, invokeId, ack, msg
+        )
+    else:
+        logging.getLogger('smartbusclient').error(
+              '_smartbus_invoke_flow_ack(packInfo=%s, project=%s, invokeId=%s, ack=%s, msg=%s)',
+              packInfo, project, invokeId, ack, msg
+        )
     try:
         ack = webhandlers.FlowInvokeAck(packInfo, project, invokeId, ack, msg)
         webhandlers.FlowHandler.set_flow_ack(ack)
@@ -173,7 +175,6 @@ def startup(args):
             _sbc.onConnectFail = partial(_smartbus_connect_fail, _sbc)
             _sbc.onDisconnect = partial(_smartbus_disconnected, _sbc)
             _sbc.onReceiveText = partial(_smartbus_receive_text, _sbc)
-            _sbc.onInvokeFlowError = partial(_smartbus_invoke_flow_err, _sbc)
             _sbc.onInvokeFlowAcknowledge = partial(_smartbus_invoke_flow_ack, _sbc)
             _sbc.connect()
             globalvars.net_smartbusclients.append(_sbc)
@@ -187,7 +188,6 @@ def startup(args):
         _sbc.onConnectFail = partial(_smartbus_connect_fail, _sbc)
         _sbc.onDisconnect = partial(_smartbus_disconnected, _sbc)
         _sbc.onReceiveText = partial(_smartbus_receive_text, _sbc)
-        _sbc.onInvokeFlowError = partial(_smartbus_invoke_flow_err, _sbc)
         _sbc.onInvokeFlowAcknowledge = partial(_smartbus_invoke_flow_ack, _sbc)
         _sbc.connect()
         globalvars.ipc_smartbusclient = _sbc

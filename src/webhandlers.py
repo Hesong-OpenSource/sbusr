@@ -7,14 +7,17 @@
 '''
 
 import json
+import time
 import random
 
+from tornado import ioloop
 from tornado.web import RequestHandler
 from tornado.gen import coroutine
 from tornado.concurrent import Future
 
 from jsonrpc import to_str
 import globalvars
+import settings
 
 
 class FlowInvokeAck:
@@ -24,14 +27,6 @@ class FlowInvokeAck:
         self.invokeid = invokeid
         self.ack = ack
         self.msg = msg
-
-
-class FlowInvokeErr:
-    def __init__(self, packinfo, project, invokeid, errno):
-        self.packinfo = packinfo
-        self.project = project
-        self.invokeid = invokeid
-        self.errno = errno
 
 
 class FlowHandler(RequestHandler):
@@ -62,14 +57,32 @@ class FlowHandler(RequestHandler):
         else:
             _sbc = random.choice(globalvars.net_smartbusclients)
         self._invoke_id = _sbc.invokeFlow(server, process, project, flow, params, False)
+        #        
         self._invoking_futures[self._invoke_id] = fut = Future()
+        
+        # 超时处理
+        def _invoke_timeout():
+            _fut = self._invoking_futures.pop(self._invoke_id)
+            _fut.set_result(TimeoutError('yield future timeout'))
+        
+        ioloop.IOLoop.instance().add_timeout(
+             time.time() + settings.FLOW_ACK_TIMEOUT,
+             _invoke_timeout
+        )
+        # 开始异步等流程回执
         fres = yield fut
+        # 流程回执了！
         if isinstance(fres, FlowInvokeAck):
-            self.finish()
-        elif isinstance(fres, FlowInvokeErr):
-            self.send_error()
+            if fres.ack == 1:  # 调用成功！
+                self.finish(fres.msg)
+            else:  # 调用错误！
+                errtxt = 'Flow invoking failed. packinfo={}, project={}, id={}, ack={}, msg={}'\
+                    .format(fres.packinfo, fres.project, fres.invokeid, fres.ack, fres.msg)
+                raise RuntimeError('{}'.format(errtxt))
+        elif isinstance(fres, Exception):
+            raise fres
         else:
-            self.send_error()
+            raise RuntimeError('Unknown future result {} {}'.format(type(fres), fres))
 
     def on_connection_close(self):
         super().on_connection_close()
@@ -89,13 +102,3 @@ class FlowHandler(RequestHandler):
         # set to end the future
         fut.set_result(ack)
 
-    @classmethod
-    def set_flow_err(cls, err: FlowInvokeErr):
-        '''设置流程启动错误
-        
-        :param webhandlers.FlowInvokeAck err: 错误信息
-        '''
-        # POP
-        fut = cls._invoking_futures.pop(err.invokeid)
-        # set to end the future
-        fut.set_result(err)
