@@ -56,22 +56,27 @@ class FlowHandler(RequestHandler):
             _sbc = globalvars.ipc_smartbusclient
         else:
             _sbc = random.choice(globalvars.net_smartbusclients)
-        self._invoke_id = _sbc.invokeFlow(server, process, project, flow, params, False)
-        #        
-        self._invoking_futures[self._invoke_id] = fut = Future()
-        
+        _invokeid = _sbc.invokeFlow(server, process, project, flow, params, False)
+        self._invoke_id = '{}:{}:{}:{}'.format(server, project, flow, _invokeid)
+        #
+        self._invoking_futures[self._invoke_id] = self._invoke_future = Future()
+
         # 超时处理
         def _invoke_timeout():
-            _fut = self._invoking_futures.pop(self._invoke_id)
-            _fut.set_result(TimeoutError('yield future timeout'))
-        
-        ioloop.IOLoop.instance().add_timeout(
+            self._invoke_timeout = None
+            self._invoke_future.set_result(TimeoutError('yield future timeout'))
+            self._invoking_futures.pop(self._invoke_id)
+
+        self._invoke_timeout = ioloop.IOLoop.instance().add_timeout(
              time.time() + settings.FLOW_ACK_TIMEOUT,
              _invoke_timeout
         )
         # 开始异步等流程回执
-        fres = yield fut
+        fres = yield self._invoke_future
         # 流程回执了！
+        if self._invoke_timeout:
+            ioloop.IOLoop.instance().remove_timeout(self._invoke_timeout)
+            self._invoke_timeout = None
         if isinstance(fres, FlowInvokeAck):
             if fres.ack == 1:  # 调用成功！
                 self.finish(fres.msg)
@@ -86,10 +91,10 @@ class FlowHandler(RequestHandler):
 
     def on_connection_close(self):
         super().on_connection_close()
-        # POP
-        fut = self._invoking_futures.pop(self._invoke_id)
         # set to end the future
-        fut.set_result()
+        self._invoke_future.set_result()
+        # POP
+        self._invoking_futures.pop(self._invoke_id)
 
     @classmethod
     def set_flow_ack(cls, ack: FlowInvokeAck):
@@ -97,8 +102,9 @@ class FlowHandler(RequestHandler):
         
         :param webhandlers.FlowInvokeAck ack: 回执信息
         '''
+        _invoke_id = '{}:{}:{}:{}'.format(ack.packinfo.srcUnitId, ack.project, ack.flow, ack.invokeid)
         # POP
-        fut = cls._invoking_futures.pop(ack.invokeid)
+        fut = cls._invoking_futures.pop(_invoke_id)
         # set to end the future
         fut.set_result(ack)
 
