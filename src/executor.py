@@ -27,9 +27,9 @@ try:
 except ImportError:
     from loggingqueue import QueueListener
 from functools import partial
+import inspect
 
 import jsonrpc
-import settings
 import globalvars
 
 CMDTYPE_JSONRPC_REQ = 211
@@ -75,30 +75,40 @@ class Executor(QueueListener):
             raise ValueError('Unknown pool_model {}'.format(pool_model))
 
         if pool_model_name == 'ProcessPool':
+            self._pool_model = 'process'
             self._pool = Pool(
                 pool_processes,
                 _subproc_init,
-                (globalvars.prog_args,
-                 globalvars.main_logging_queue, logging.root.level),
+                (globalvars.prog_args, globalvars.main_logging_queue, logging.root.level),
                 pool_maxtasksperchild
             )
         elif pool_model_name == 'ThreadPool':
+            self._pool_model = 'thread'
             self._pool = ThreadPool(pool_processes)
         else:
             raise NotImplementedError()
 
-        QueueListener.__init__(self, queue.Queue(queue_maxsize))
+        super().__init__(self, queue.Queue(queue_maxsize))
 
         logging.getLogger('Executor').info(
             'construct: pool_model=%s, queue_maxsize=%s, pool_processes=%s',
             pool_model_name, queue_maxsize, pool_processes)
+        
+    @property
+    def pool_model(self):
+        '''执行器的模型(只读属性)
+
+        * "process": 进程池模型
+        * "thread": 线程池模型
+        '''
+        return self._pool_model
 
     def put(self, client, pack_info, txt):
         self.queue.put((client, pack_info, txt, time.time()))
 
     def stop(self):
         logging.getLogger('Executor').info('stopping')
-        QueueListener.stop(self)
+        super().stop(self)
         self._pool.terminate()
         self._pool.join()
         logging.getLogger('Executor').info('stopped')
@@ -128,7 +138,7 @@ class Executor(QueueListener):
                                 'jsonrpc': jsonrpc.jsonrpc_version,
                                 'id': _id,
                                 'error': {
-                                    'code': -32500,
+                                    'code':-32500,
                                     'message': '{} {}'.format(type(error), error),
                                     'data': None,
                                 }
@@ -140,7 +150,7 @@ class Executor(QueueListener):
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').debug(
                                 'call back:\n    result=%s %s\n    duration=%s\n    request=%s',
-                                type(result), result, time.time() -
+                                type(result), result, time.time() - 
                                 begin_time, record
                             )
                         if _id:
@@ -170,13 +180,13 @@ class Executor(QueueListener):
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').exception(
                                 'error callback:\n    duration=%s\n    request=%s:\n  %s %s',
-                                time.time() -
+                                time.time() - 
                                 begin_time, record, type(error), error
                             )
                         else:
                             logging.getLogger('Executor').error(
                                 'error callback:\n    %s %s\n    duration=%s\n    request=%s\n  %s %s',
-                                type(error), error, time.time() -
+                                type(error), error, time.time() - 
                                 begin_time, record, type(error), error
                             )
                         if _id:
@@ -188,7 +198,7 @@ class Executor(QueueListener):
                                     'jsonrpc': jsonrpc.jsonrpc_version,
                                     'id': _id,
                                     'error': {
-                                        'code': -32500,
+                                        'code':-32500,
                                         'message': '{} {}'.format(type(error), error),
                                         'data': None,
                                     }
@@ -235,42 +245,21 @@ mod_map = {}
 
 
 def _poolfunc(method, *args, **kwargs):
+    mothods_mod_name = 'methods'
+    curr_obj = importlib.import_module(mothods_mod_name)
+    loaded_parts = [mothods_mod_name]
     _method_parts = method.split('.')
-    if len(_method_parts) == 1:
-        _module_name = 'methods'
-        _func_name = method
-    else:
-        _module_name = 'methods.{}'.format('.'.join(_method_parts[:-1]))
-        _func_name = _method_parts[-1]
     with mod_map_lock:
-        _modobj = importlib.import_module(_module_name)
-        mod_info = mod_map[_module_name] = mod_map.get(_module_name, {})
-        if not mod_info:
-            mod_info['load_time'] = time.time()
-    last_load_time = mod_info.get('load_time', 0)
-    try:
-        reloadinterval = float(settings.METHODS_RELOAD_INTERVAL)
-    except Exception:
-        reloadinterval = -1
-    if reloadinterval >= 0 and time.time() - last_load_time > reloadinterval:
-        try:
-            logging.getLogger('Executor').info(
-                'reload module %s when processing method %s',
-                _module_name, method)
-            with mod_map_lock:
-                _modobj = importlib.reload(_modobj)
-                mod_info['load_time'] = time.time()
-        except Exception as e:
-            if globalvars.prog_args.more_detailed_logging:
-                logging.getLogger('Executor').exception(
-                    'reload module error when processing method %s',
-                    method)
-            else:
-                logging.getLogger('Executor').error(
-                    'reload module error when processing method %s: %s',
-                    method, e)
-    _callobj = getattr(_modobj, _func_name)
-    return _callobj(*args, **kwargs)
+        for part in _method_parts:
+            loaded_parts.append(part)
+            try:
+                curr_obj = getattr(curr_obj, part)
+            except AttributeError:
+                if inspect.ismodule(curr_obj):
+                    curr_obj = importlib.import_module('.'.join(loaded_parts))
+                else:
+                    raise
+    return curr_obj(*args, **kwargs)
 
 
 def _subproc_init(progargs, logging_queue, logging_root_level):

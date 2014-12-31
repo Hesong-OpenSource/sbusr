@@ -7,11 +7,9 @@
 :author: 刘雪彦
 '''
 
-
 RELOAD_INTERVAL = 120
 '''重加载 :mod:`settings` 模块的时间间隔，单位是秒。默认值120秒，不得小于30秒。
 '''
-
 
 EXECUTOR_CONFIG = {
     "pool_model": "ProcessPool",
@@ -36,7 +34,6 @@ EXECUTOR_CONFIG = {
 
 .. warning:: 不得删除该变量，不得修改该变量的结构。
 '''
-
 
 SMARTBUS_CONFIG = {
     "type": "net",
@@ -103,24 +100,6 @@ SMARTBUS_CONFIG = {
     .. attention:: 仅当 ``type`` 属性为 ``"net"`` 时有效
 
 '''
-
-
-METHODS_RELOAD_INTERVAL = 180
-'''自定义方法模块的重加载时间间隔（秒）
-
-当上次调用自定义方法与本次调用的时间间隔大于该值时，将重新加载方法所在模块
-
-* < 0 表示永远不重新加载
-* = 0 表示每次都重新加载
-* 默认值是 -1
-
-一旦开启了重加载，开发者就可以随时修改、新建自定义RPC模块，待重加载时间间隔到，这些模块会被sbusr自动重新加载。
-
-.. attention::
-
-    如果模块有语法错误，或者在加载时全局代码执行错误，则不会被重加载
-'''
-
 
 WEBSERVER_LISTEN = (
     8080,  # 监听端口
@@ -208,7 +187,4 @@ LOGGING_CONFIG = {
 https://docs.python.org/2/library/logging.config.html#configuration-dictionary-schema
 
 https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema
-
-
-
 '''

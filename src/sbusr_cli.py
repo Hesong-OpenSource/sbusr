@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-'''sbsur 启动命令行
+'''sbsur 命令行
 
 :author:     刘雪彦
 
@@ -77,7 +77,6 @@ runtime:
     date    : {}
     update  : {}
     '''.format(program_version_message, program_runtime_message, __version__, __date__, __updated__)
-
 
     try:
         # Setup argument parser
