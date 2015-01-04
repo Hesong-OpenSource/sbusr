@@ -76,7 +76,7 @@ class Executor(QueueListener):
             pool_maxtasksperchild
         )
 
-        super().__init__(self, queue.Queue(queue_maxsize))
+        super().__init__(queue.Queue(queue_maxsize))
 
         logging.getLogger('Executor').info(
             'construct: queue_maxsize=%s, pool_processes=%s',
@@ -87,7 +87,7 @@ class Executor(QueueListener):
 
     def stop(self):
         logging.getLogger('Executor').info('stopping')
-        super().stop(self)
+        super().stop()
         self._pool.terminate()
         self._pool.join()
         logging.getLogger('Executor').info('stopped')

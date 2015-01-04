@@ -54,7 +54,7 @@ class TestProcessPoolExecutor(unittest.TestCase):
         globalvars.prog_args = Object()
         globalvars.prog_args.more_detailed_logging = False
         #
-        self.executor = executor.Executor(pool_model='Process')
+        self.executor = executor.Executor()
         self.executor.start()
     
     def tearDown(self):
@@ -110,7 +110,7 @@ class TestProcessPoolExecutor(unittest.TestCase):
             "jsonrpc": jsonrpc.jsonrpc_version,
             "id": id_,
             "method": "sleep",
-            "params": [1],
+            "params": [0.1],
         }
         #
         packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
@@ -139,7 +139,7 @@ class TestProcessPoolExecutor(unittest.TestCase):
         _cond = threading.Condition()
         _cond.acquire()
         self.executor.put(client, pack, json.dumps(req))
-        waited = _cond.wait(timeout=1.5)
+        waited = _cond.wait(timeout=1)
         _cond.release()
         if waited is not None:
             self.assertTrue(waited)
@@ -181,7 +181,7 @@ class TestProcessPoolExecutor(unittest.TestCase):
         _cond = threading.Condition()
         _cond.acquire()
         self.executor.put(client, pack, json.dumps(req))
-        waited = _cond.wait(timeout=0.5)
+        waited = _cond.wait(timeout=0.1)
         _cond.release()
         if waited is not None:
             self.assertFalse(waited)
