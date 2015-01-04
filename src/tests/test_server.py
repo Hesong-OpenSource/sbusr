@@ -21,6 +21,7 @@ import executor
 import globalvars
 import settings
 import server
+import random
 
 logging_fmt = logging.Formatter(fmt='%(asctime)s <%(processName)-10s,%(threadName)-10s> %(levelname)-8s %(name)s - %(message)s')
 logging_handler = logging.StreamHandler()
@@ -62,12 +63,16 @@ class TestServer(unittest.TestCase):
 
 
     def setUp(self):
+        settings.WEBSERVER_LISTEN = (random.randint(60000, 65535), '127.0.0.1')
         
         def server_thread_rountine():
             self._thread_started_cond.acquire()
             self._thread_started_cond.notify()
             self._thread_started_cond.release()
-            server.startup(prog_args)
+            with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
+                mock_smbipc_cls.__lib = True
+                mock_smbipc_cls.initialize = MagicMock(return_value=True)
+                server.startup(prog_args)
         
         self._thread_started_cond = threading.Condition()
         self._thread = threading.Thread(target=server_thread_rountine)
@@ -85,7 +90,6 @@ class TestServer(unittest.TestCase):
 
     def test_echo(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
-            mock_smbipc_cls.initialize.return_value = None
             smbclt = mock_smbipc_cls.return_value
             smbclt.send = MagicMock()
             #
@@ -114,7 +118,6 @@ class TestServer(unittest.TestCase):
             
     def test_classmethod_1(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
-            mock_smbipc_cls.initialize.return_value = None
             smbclt = mock_smbipc_cls.return_value
             smbclt.send = MagicMock()
             #
@@ -143,7 +146,6 @@ class TestServer(unittest.TestCase):
             
     def test_classmethod_2(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
-            mock_smbipc_cls.initialize.return_value = None
             smbclt = mock_smbipc_cls.return_value
             smbclt.send = MagicMock()
             #
@@ -172,7 +174,6 @@ class TestServer(unittest.TestCase):
             
     def test_submodfunc(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
-            mock_smbipc_cls.initialize.return_value = None
             smbclt = mock_smbipc_cls.return_value
             smbclt.send = MagicMock()
             #
@@ -199,34 +200,75 @@ class TestServer(unittest.TestCase):
             self.assertEqual(res["result"], 'boo' + req["params"][0])
             
 
-#     def test_invokeflow(self):
-#         settings.WEBSERVER_LISTEN = (60080, '127.0.0.1')
-#         
-#         import http.client
-#         
-#         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
-#             mock_smbipc_cls.initialize.return_value = None
-#             smbclt = mock_smbipc_cls.return_value
-#             smbclt.send = MagicMock()
-#             #
-#             packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
-#             pack = PackInfo(*packinfo_args)
-#             server._smartbus_receive_text(smbclt, pack, json.dumps(req))
-#             # sleep to wait the result
-#             time.sleep(0.1)
-#             # check the result
-#             call_args = smbclt.send.call_args[0]
-#             #
-#             hc = http.client.HTTPConnection(settings.WEBSERVER_LISTEN[1], settings.WEBSERVER_LISTEN[0])
-#             hc.connect()
-#             hc.request('POST', 'api/flow',
-#                    body=json.dumps({'server':0,
-#                                     'process':0,
-#                                     'project':'project1',
-#                                     'flow':'flow1',
-#                                     'params':[1, 2, 3]
-#                                     })
-#             )
+    def test_invokeflow(self):
+        logging.info('begin of test_invokeflow')
+         
+        import http.client
+         
+        with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
+            smbclt = mock_smbipc_cls.return_value
+            invokeid = random.randint(1, 65536)
+#             smbclt.invokeFlow.return_value = invokeid
+            
+            def invokeFlow(server, process, project, flow, params, *args):
+                self.assertEqual(server, body['server'])
+                self.assertEqual(process, body['process'])
+                self.assertEqual(project, body['project'])
+                self.assertEqual(flow, body['flow'])
+                self.assertEqual(params, body['params'])
+                return invokeid
+             
+            smbclt.invokeFlow = invokeFlow
+            
+            
+            
+            #
+            #
+            body = {'server':0,
+                    'process':0,
+                    'project':'project1',
+                    'flow':'flow1',
+                    'params':[1, 2, 3]
+                    }
+            def http_thread_routine():
+                http_thread_started_cond.acquire()
+                http_thread_started_cond.notify()
+                http_thread_started_cond.release()
+                hc = http.client.HTTPConnection(settings.WEBSERVER_LISTEN[1], settings.WEBSERVER_LISTEN[0])
+                hc.connect()
+                hc.request('POST', '/api/flow', body=json.dumps(body))
+                hresp = hc.getresponse()
+                self.assertEqual(hresp.status, 200)
+                hresp_body = hresp.read()
+                print(hresp_body)                
+                http_thread_stopped_cond.acquire()
+                http_thread_stopped_cond.notify()
+                http_thread_stopped_cond.release()
+            
+            http_thread_started_cond = threading.Condition()
+            http_thread_stopped_cond = threading.Condition()
+            http_thread = threading.Thread(target=http_thread_routine)
+            http_thread.daemon = True
+            http_thread_started_cond.acquire()
+            http_thread.start()
+            http_thread_started_cond.wait()
+            http_thread_started_cond.release()
+            # #
+            time.sleep(1)
+#             _args = smbclt.invokeFlow.call_args[0]
+#             self.assertEqual(_args[0], body['server'])
+#             self.assertEqual(_args[1], body['process'])
+#             self.assertEqual(_args[2], body['project'])
+#             self.assertEqual(_args[3], body['flow'])
+#             self.assertEqual(_args[4], body['params'])
+            # #
+            packinfo_args = body['server'], 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
+            pack = PackInfo(*packinfo_args)
+            server._smartbus_invoke_flow_ack(pack, body['project'], invokeid, 1, 'tesing: OK')
+            # #
+            http_thread_stopped_cond.acquire()
+            http_thread_stopped_cond.wait()
+            http_thread_stopped_cond.release()
 
             
 

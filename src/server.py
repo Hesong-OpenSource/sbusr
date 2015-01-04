@@ -18,6 +18,7 @@ import logging.config
 import logging.handlers
 import importlib
 import multiprocessing
+import threading
 import sched
 from functools import partial
 
@@ -113,6 +114,8 @@ def _smartbus_invoke_flow_ack(packInfo, project, invokeId, ack, msg):
         logging.getLogger('smartbusclient').exception(
             '_smartbus_invoke_flow_ack')
 
+_ioloopstopped = threading.Condition()
+_http_server = None
 
 def startup(args):
     '''启动服务
@@ -196,27 +199,39 @@ def startup(args):
         globalvars.ipc_smartbusclient = _sbc
 
     # startup settings' auto-reload
-    start_auto_reload_settings()
+#     threading.Thread(target=run_auto_reload_settings).start()
 
     # setup tornado-web server
     application = web.Application([
         (r"/api/flow", webhandlers.FlowHandler),
     ])
-    http_server = httpserver.HTTPServer(application)
-    http_server.listen(*settings.WEBSERVER_LISTEN)
+    global _http_server
+    _http_server = httpserver.HTTPServer(application)
+    _http_server.listen(*settings.WEBSERVER_LISTEN)
+    logging.info('http server listening at %s ...', settings.WEBSERVER_LISTEN)
+    logging.info('ioloop.IOLoop.instance().start() >>>')
     ioloop.IOLoop.instance().start()
+    logging.warn('ioloop.IOLoop.instance().start() <<<')
+    _ioloopstopped.acquire()
+    _ioloopstopped.notify()
+    _ioloopstopped.release()
 
 
 def stop():
     logging.warn('stopping...')
+    logging.warn('stopping executor...')
     _executor.stop()
     logging.warn('executor stopped!')
+    logging.warn('stopping IOLoop...')
+    _ioloopstopped.acquire()
     ioloop.IOLoop.instance().stop()
-    logging.warn('ioloop stopped!')
-    
+    _ioloopstopped.wait()
+    _ioloopstopped.release()
+    logging.warn('IOLoop stopped!')
 
-def start_auto_reload_settings():
-    logging.debug('start settings auto reloading')
+
+def run_auto_reload_settings():
+    logging.debug('run auto reload settings')
 
     def _action_func():
         try:
