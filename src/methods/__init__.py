@@ -10,6 +10,13 @@
 import time
 import logging
 
+class BuildIn:
+    @classmethod
+    def sum(cls, *args):
+        return sum(args)
+    
+    
+
 def add(a, b):
     '''加法'''
     return a + b

@@ -39,7 +39,7 @@ del logging.root.handlers[:]
 logging.root.handlers.append(logging_handler)
 
 
-class TestProcessPoolExecutor(unittest.TestCase):
+class TestExecutor(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):

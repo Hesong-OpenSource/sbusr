@@ -144,7 +144,7 @@ def startup(args):
     print('initialize main logger')
     if not globalvars.main_logging_queue:
         print('create main_logging_queue')
-        globalvars.main_logging_queue = multiprocessing.queues.Queue()
+        globalvars.main_logging_queue = multiprocessing.Queue()
     if not globalvars.main_logging_listener:
         print('create main_logging_listener')
         globalvars.main_logging_listener = logging.handlers.QueueListener(
@@ -206,6 +206,14 @@ def startup(args):
     http_server.listen(*settings.WEBSERVER_LISTEN)
     ioloop.IOLoop.instance().start()
 
+
+def stop():
+    logging.warn('stopping...')
+    _executor.stop()
+    logging.warn('executor stopped!')
+    ioloop.IOLoop.instance().stop()
+    logging.warn('ioloop stopped!')
+    
 
 def start_auto_reload_settings():
     logging.debug('start settings auto reloading')
