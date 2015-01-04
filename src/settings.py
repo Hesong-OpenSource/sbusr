@@ -1,38 +1,9 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 '''配置
 
 :date: 2014-12-26
-
 :author: 刘雪彦
-'''
-
-RELOAD_INTERVAL = 120
-'''重加载 :mod:`settings` 模块的时间间隔，单位是秒。默认值120秒，不得小于30秒。
-'''
-
-EXECUTOR_CONFIG = {
-    "pool_model": "ProcessPool",
-    "queue_maxsize": 10000,
-    "pool_processes": 4,
-    "pool_maxtasksperchild": 10000
-}
-'''执行器设置
-
-这个设置被用于 :class:`executor.Executor` 构造函数的传入参数。
-
-:param pool_model: 执行器的并发模式 ``"ProcessPool"`` 或 ``"ThreadPool"``
-
-    * ``"ProcessPool"`` : 进程池模式。sbusr使用Python标准库的 ``multipleprocessing.pool.Pool`` 并发执行RPC
-    * ``"ThreadPool"`` : 线程池模式。sbusr使用Python标准库的 ``multipleprocessing.pool.ThreadPool`` 并发执行RPC
-
-:param queue_maxsize: 任务队列最大值。0，表示无限制。
-
-:param pool_processes: 执行器池的最大数量。 ``None`` 表示使用 CPU 核心数量作为其最大值。
-
-:param pool_maxtasksperchild: 进程池最大执行数量。 ``None`` 表示无限制。超过该值，则重启子进程。仅对进程池模式有效。
-
-.. warning:: 不得删除该变量，不得修改该变量的结构。
 '''
 
 SMARTBUS_CONFIG = {
@@ -110,6 +81,30 @@ WEBSERVER_LISTEN = (
 .. warning:: 不得删除该变量，不得修改该变量的结构。
 """
 
+EXECUTOR_CONFIG = {
+    "queue_maxsize": 10000,
+    "pool_processes": 4,
+    "pool_maxtasksperchild": 10000
+}
+'''执行器设置
+
+这个设置被用于 :class:`executor.Executor` 构造函数的传入参数。
+
+:param queue_maxsize: 任务队列最大值。0，表示无限制。
+:param pool_processes: 执行器池的最大数量。 ``None`` 表示使用 CPU 核心数量作为其最大值。
+:param pool_maxtasksperchild: 进程池最大执行数量。 ``None`` 表示无限制。超过该值，则重启子进程。
+
+.. warning:: 不得删除该变量，不得修改该变量的结构。
+'''
+
+RELOAD_INTERVAL = 120
+'''配置文件重加载时间间隔（秒）
+
+每隔一段时间重加载 :mod:`settings` 模块
+
+默认值：120
+'''
+
 FLOW_ACK_TIMEOUT = 15
 '''流程调用时等待调用结果的最大时间，单位是秒
 '''
@@ -183,8 +178,7 @@ LOGGING_CONFIG = {
 '''日志设置
 
 其格式请参考:
-
 https://docs.python.org/2/library/logging.config.html#configuration-dictionary-schema
-
+与
 https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema
 '''

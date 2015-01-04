@@ -7,16 +7,16 @@
 然后返回结果。
 
 :date: 2013-12-14
-
 :author: tanbro
 '''
 
+from __future__ import print_function, unicode_literals, absolute_import
+
 import sys
-import logging.handlers
+import logging
 import time
 import json
-import importlib
-from multiprocessing.pool import ThreadPool, Pool
+from multiprocessing.pool import Pool
 import threading
 try:
     import queue
@@ -26,27 +26,29 @@ try:
     from logging.handlers import QueueListener
 except ImportError:
     from loggingqueue import QueueListener
+try:
+    from logging.handlers import QueueHandler
+except ImportError:
+    from loggingqueue import QueueHandler
 from functools import partial
+import importlib
 import inspect
 
 import jsonrpc
 import globalvars
 
+
 CMDTYPE_JSONRPC_REQ = 211
-'''JSONRPC 请求. 用于 smartbus 客户端 send 函数的 cmd_type 参数.'''
+'''标志：JSONRPC 请求. 用于 smartbus 客户端 send 函数的 cmd_type 参数.'''
 
 CMDTYPE_JSONRPC_RES = 212
-'''JSONRPC 回复. 用于 smartbus 客户端 send 函数的 cmd_type 参数.'''
+'''标志：JSONRPC 回复. 用于 smartbus 客户端 send 函数的 cmd_type 参数.'''
 
 
 class Executor(QueueListener):
-
     '''smarbus JSON RPC 请求执行器
 
-    :param pool_model: 执行器池模型
-        默认值为 ``None`` ，表示使用线程池。
-        ``"ThreadPool"`` 表示使用线程池。
-        ``"ProcessPool"`` 表示使用进程池。
+    使用进程池执行 RPC 请求
 
     :param queue_maxsize: 任务队列最大值
         默认为0，表示无限制。
@@ -64,44 +66,21 @@ class Executor(QueueListener):
     返回数据格式是符合 JSON RPC 标准的字符串。
     '''
 
-    def __init__(self, pool_model=None, queue_maxsize=0, pool_processes=None, pool_maxtasksperchild=None):
-        if not pool_model:
-            pool_model_name = 'ThreadPool'
-        elif pool_model.strip().upper() in ('PROCESS', 'PROCESSES', 'PROCESSING', 'PROCESSPOOL', 'POOL', 'P'):
-            pool_model_name = 'ProcessPool'
-        elif pool_model.strip().upper() in ('THREAD', 'THREADS', 'THREADING', 'THREADINGPOOL', 'T'):
-            pool_model_name = 'ThreadPool'
-        else:
-            raise ValueError('Unknown pool_model {}'.format(pool_model))
+    def __init__(self, queue_maxsize=0, pool_processes=None, pool_maxtasksperchild=None):
 
-        if pool_model_name == 'ProcessPool':
-            self._pool_model = 'process'
-            self._pool = Pool(
-                pool_processes,
-                _subproc_init,
-                (globalvars.prog_args, globalvars.main_logging_queue, logging.root.level),
-                pool_maxtasksperchild
-            )
-        elif pool_model_name == 'ThreadPool':
-            self._pool_model = 'thread'
-            self._pool = ThreadPool(pool_processes)
-        else:
-            raise NotImplementedError()
+        self._pool = Pool(
+            pool_processes,
+            _subproc_init,
+            (globalvars.prog_args,
+             globalvars.main_logging_queue, logging.root.level),
+            pool_maxtasksperchild
+        )
 
         super().__init__(self, queue.Queue(queue_maxsize))
 
         logging.getLogger('Executor').info(
-            'construct: pool_model=%s, queue_maxsize=%s, pool_processes=%s',
-            pool_model_name, queue_maxsize, pool_processes)
-        
-    @property
-    def pool_model(self):
-        '''执行器的模型(只读属性)
-
-        * "process": 进程池模型
-        * "thread": 线程池模型
-        '''
-        return self._pool_model
+            'construct: queue_maxsize=%s, pool_processes=%s',
+            queue_maxsize, pool_processes)
 
     def put(self, client, pack_info, txt):
         self.queue.put((client, pack_info, txt, time.time()))
@@ -138,7 +117,7 @@ class Executor(QueueListener):
                                 'jsonrpc': jsonrpc.jsonrpc_version,
                                 'id': _id,
                                 'error': {
-                                    'code':-32500,
+                                    'code': -32500,
                                     'message': '{} {}'.format(type(error), error),
                                     'data': None,
                                 }
@@ -150,7 +129,7 @@ class Executor(QueueListener):
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').debug(
                                 'call back:\n    result=%s %s\n    duration=%s\n    request=%s',
-                                type(result), result, time.time() - 
+                                type(result), result, time.time() -
                                 begin_time, record
                             )
                         if _id:
@@ -180,13 +159,13 @@ class Executor(QueueListener):
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').exception(
                                 'error callback:\n    duration=%s\n    request=%s:\n  %s %s',
-                                time.time() - 
+                                time.time() -
                                 begin_time, record, type(error), error
                             )
                         else:
                             logging.getLogger('Executor').error(
                                 'error callback:\n    %s %s\n    duration=%s\n    request=%s\n  %s %s',
-                                type(error), error, time.time() - 
+                                type(error), error, time.time() -
                                 begin_time, record, type(error), error
                             )
                         if _id:
@@ -198,7 +177,7 @@ class Executor(QueueListener):
                                     'jsonrpc': jsonrpc.jsonrpc_version,
                                     'id': _id,
                                     'error': {
-                                        'code':-32500,
+                                        'code': -32500,
                                         'message': '{} {}'.format(type(error), error),
                                         'data': None,
                                     }
@@ -267,12 +246,7 @@ def _subproc_init(progargs, logging_queue, logging_root_level):
         logging.root.handlers.clear()
     except AttributeError:
         del logging.root.handlers[:]
-    try:
-        QueueHandlerClass = logging.handlers.QueueHandler
-    except AttributeError:
-        import loggingqueue
-        QueueHandlerClass = loggingqueue.QueueHandler
-    logging.root.addHandler(QueueHandlerClass(logging_queue))
+    logging.root.addHandler(QueueHandler(logging_queue))
     logging.root.setLevel(logging_root_level)
     logging.info('subproc init')
     globalvars.prog_args = progargs

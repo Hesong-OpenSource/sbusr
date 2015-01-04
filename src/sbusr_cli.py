@@ -4,11 +4,8 @@
 '''sbsur 命令行
 
 :author:     刘雪彦
-
 :copyright:  2013 Hesong Info-Tech. All rights reserved.
-
 :license:    commercial
-
 :contact:    lxy@hesong.net
 '''
 
