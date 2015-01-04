@@ -13,6 +13,9 @@
 from __future__ import print_function, unicode_literals, absolute_import
 
 import sys
+
+PY3K = sys.version_info[0] > 2
+
 import logging
 import time
 import json
@@ -76,7 +79,7 @@ class Executor(QueueListener):
             pool_maxtasksperchild
         )
 
-        super().__init__(queue.Queue(queue_maxsize))
+        super(QueueListener, self).__init__(queue.Queue(queue_maxsize))
 
         logging.getLogger('Executor').info(
             'construct: queue_maxsize=%s, pool_processes=%s',
