@@ -78,7 +78,10 @@ class Executor(QueueListener):
              globalvars.main_logging_queue, logging.root.level),
             pool_maxtasksperchild
         )
-        super(QueueListener, self).__init__(queue.Queue(queue_maxsize))
+        if PY3K:
+            super().__init__(queue.Queue(queue_maxsize))
+        else:
+            super(QueueListener, self).__init__(queue.Queue(queue_maxsize))
         logging.getLogger('Executor').info(
             'construct: queue_maxsize=%s, pool_processes=%s',
             queue_maxsize, pool_processes)
