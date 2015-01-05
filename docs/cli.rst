@@ -2,10 +2,12 @@
 命令行
 ############
 
-run_sbusr.py
+sbusr_cli.py
 ==============
 
-.. program:: run_sbusr.py
+.. program:: sbusr_cli.py
+
+见 :mod:`sbusr_cli`
 
 在当前终端/命令行窗口中运行
 
@@ -13,15 +15,19 @@ run_sbusr.py
 
     POSIX（需要权限）::
 
-        ./run_sbusr.py <option>
+        ./sbusr_cli.py <option> {run}
 
     Windows（需要权限与文件关联）::
 
-        run_sbusr.py <option>                  
+        sbusr_cli.py <option> {run}               
 
 使用 `Python <https://www.python.org>`_ 运行::
 
-    python run_sbusr.py <option>
+    python sbusr_cli.py <option> {run}
+
+.. option:: run
+
+	启动程序
 
 .. option:: -V, --version
 

@@ -78,6 +78,9 @@ runtime:
     try:
         # Setup argument parser
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
+        parser.add_argument('action', type=str, choices=['run'], nargs=1
+                            , help='run: start to run the program'
+                            )
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
         parser.add_argument("-m", "--more-detailed-logging", action="store_true"
                             , help="generate more detailed logging data.")

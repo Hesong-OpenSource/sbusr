@@ -155,6 +155,12 @@ Python3.4 以及以上版本已经在标准库中包含了虚拟环境 `venv <ht
   本程序除 Python stdlib 外唯一的依赖包是 `smartbus-client-python <https://pypi.python.org/pypi/smartbus-client-python>`_ 。
   可访问其主页，获取下载与安装方法。
 
+  .. attention::
+
+    `smartbus-client-python <https://pypi.python.org/pypi/smartbus-client-python>`_  在安装之后，还需要相应的C语言共享/动态文件，请仔细阅读 `smartbus-client-python api doc <https://readthedocs.org/projects/smartbus-client-python>`_ 。
+
+    smartbus客户端的共享/动态文件可以在 https://github.com/Hesong-OpenSource/smartbus-client-sdk 下载。
+
 .. attention::
 
     由第三方提供的各个 RPC 模块可能有各自不同的包依赖。

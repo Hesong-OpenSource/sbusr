@@ -42,16 +42,31 @@ class FlowHandler(RequestHandler):
         # 获取JSONRPC数据
         data = json.loads(to_str(self.request.body, 'utf-8'))
         server = data.get('server')
-        process = int(data.get('process', 0))
+        process = data.get('process')
         project = str(data['project'])
         flow = str(data['flow'])
         params = data.get('params')
         # 确定用于启动该流程的IPSC
-        if server is None:
-            ipsc = random.choice(globalvars.ipsc_set)
-            server = ipsc[0]
+        if (server is None) and (process is None):
+            server, process = random.sample(globalvars.ipsc_set, 1)[0]
+        elif (server is not None) and (process is None):
+            _lst = []
+            server = int(server)
+            for ipsc in globalvars.ipsc_set:
+                if ipsc[0] == server:
+                    _lst.append(ipsc)
+            server, process = random.choice(_lst)
+        elif (server is None) and (process is not None):
+            _lst = []
+            process = int(process)
+            for ipsc in globalvars.ipsc_set:
+                if ipsc[1] == process:
+                    _lst.append(ipsc)
+            server, process = random.choice(_lst)
         else:
             server = int(server)
+            process = int(process)
+        #
         # 确定用于发送该请求的客户端
         if globalvars.ipc_smartbusclient:
             # 总是优先使用 IPC 客户端
