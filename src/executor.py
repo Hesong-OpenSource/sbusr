@@ -7,7 +7,7 @@
 然后返回结果。
 
 :date: 2013-12-14
-:author: tanbro
+:author: 刘雪彦 <lxy@hesong.net>
 '''
 
 from __future__ import print_function, unicode_literals, absolute_import

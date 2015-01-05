@@ -1,10 +1,9 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 ''' Web Request Handlers
 
 :date: 2014-12-29
-
-:author: 刘雪彦
+:author: 刘雪彦 <lxy@hesong.net>
 '''
 
 import json

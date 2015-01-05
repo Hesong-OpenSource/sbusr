@@ -1,9 +1,9 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 ''' JSON-RPC 常用方法
 :date: 2013-12-13
 
-:author: tanbro
+:author: 刘雪彦 <lxy@hesong.net>
 '''
 
 import sys

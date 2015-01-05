@@ -1,9 +1,9 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 '''
 :date: 2015-01-04
 
-:author: 刘雪彦
+:author: 刘雪彦 <lxy@hesong.net>
 '''
 #===============================================================================
 # invokeFlow mock 之后，返回值在 webhandlers 里面总是无法变成期望的ID，只好不测试了

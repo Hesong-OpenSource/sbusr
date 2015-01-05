@@ -1,9 +1,9 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 '''
 :date: 2015-01-04
 
-:author: 刘雪彦
+:author: 刘雪彦 <lxy@hesong.net>
 '''
 from __future__ import absolute_import
 

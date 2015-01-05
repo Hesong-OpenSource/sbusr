@@ -1,8 +1,4 @@
-'''
-Created on 2015年1月4日
-
-@author: tanbro
-'''
+# -*- coding: utf-8 -*-
 
 class Foo:
     

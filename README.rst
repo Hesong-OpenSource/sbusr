@@ -7,12 +7,13 @@ CI 状态
 
 `master` :
 
-  .. image:: https://travis-ci.org/Hesong-OpenSource/sbusr.svg?branch=master
-      :target: https://travis-ci.org/Hesong-OpenSource/sbusr
+.. image:: https://travis-ci.org/Hesong-OpenSource/sbusr.svg?branch=master
+    :target: https://travis-ci.org/Hesong-OpenSource/sbusr
 
 `develop` :
-	.. image:: https://travis-ci.org/Hesong-OpenSource/sbusr.svg?branch=develop
-	    :target: https://travis-ci.org/Hesong-OpenSource/sbusr
+
+.. image:: https://travis-ci.org/Hesong-OpenSource/sbusr.svg?branch=develop
+    :target: https://travis-ci.org/Hesong-OpenSource/sbusr
 
 介绍
 ######

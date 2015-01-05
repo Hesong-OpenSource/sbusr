@@ -3,7 +3,7 @@
 '''配置
 
 :date: 2014-12-26
-:author: 刘雪彦
+:author: 刘雪彦 <lxy@hesong.net>
 '''
 
 SMARTBUS_CONFIG = {

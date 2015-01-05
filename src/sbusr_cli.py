@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 '''sbsur 命令行
 
-:author:     刘雪彦
+:author:     刘雪彦 <lxy@hesong.net>
 :copyright:  2013 Hesong Info-Tech. All rights reserved.
 :license:    commercial
 :contact:    lxy@hesong.net

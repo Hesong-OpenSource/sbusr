@@ -1,11 +1,11 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 ''' smartbus-mysql-proxy 服务模块
 
 该模块负责初始化服务程序，维持smartbus客户端的连接，分配来自smartbus的sql任务，并返回结果。
 
 :date: 2013-12-13
-:author: tanbro
+:author: 刘雪彦 <lxy@hesong.net>
 '''
 
 from __future__ import print_function, unicode_literals, absolute_import

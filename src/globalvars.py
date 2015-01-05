@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ''' 记录一些全局变量，特别是需要跨进程访问的全局变量
-:date: 2013年12月20日
+:date: 2013-12-20
 
-:author: tanbro
+:author: 刘雪彦 <lxy@hesong.net>
 '''
 
 prog_args = None
