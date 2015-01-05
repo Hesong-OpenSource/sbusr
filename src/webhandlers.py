@@ -59,9 +59,7 @@ class FlowHandler(RequestHandler):
         else:
             _sbc = random.choice(globalvars.net_smartbusclients)
         ret = _sbc.invokeFlow(server, process, project, flow, params, False)
-        print(_sbc.invokeFlow)
-        print(type(ret), ret)
-        self._invoke_id = '{:d}:{:s}:{:d}'.format(server, project, ret)
+        self._invoke_id = '{:d}:{:d}:{:s}:{:d}'.format(server, process, project, ret)
         #
         self._invoking_futures[self._invoke_id] = self._invoke_future = Future()
 
@@ -106,7 +104,7 @@ class FlowHandler(RequestHandler):
         
         :param webhandlers.FlowInvokeAck ack: 回执信息
         '''
-        _invoke_id = '{:d}:{:s}:{:d}'.format(ack.packinfo.srcUnitId, ack.project, ack.invokeid)
+        _invoke_id = '{:d}:{:d}:{:s}:{:d}'.format(ack.packinfo.srcUnitId, ack.packinfo.srcUnitClientId, ack.project, ack.invokeid)
         # POP
         fut = cls._invoking_futures.pop(_invoke_id)
         # set to end the future

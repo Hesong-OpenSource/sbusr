@@ -39,6 +39,7 @@ import inspect
 
 import jsonrpc
 import globalvars
+import settings
 
 
 CMDTYPE_JSONRPC_REQ = 211
@@ -127,8 +128,7 @@ class Executor(QueueListener):
                                 }
                             }
                             data = json.dumps(response)
-                            client.send(
-                                0, CMDTYPE_JSONRPC_RES, pack_info.srcUnitId, pack_info.srcUnitClientId, -1, data, 'utf-8')
+                            client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
                             raise error
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').debug(
@@ -143,8 +143,7 @@ class Executor(QueueListener):
                                 'result': result,
                             }
                             data = json.dumps(response)
-                            client.send(
-                                0, CMDTYPE_JSONRPC_RES, pack_info.srcUnitId, pack_info.srcUnitClientId, -1, data, 'utf-8')
+                            client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
                     except Exception as e:
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').exception(
@@ -187,8 +186,7 @@ class Executor(QueueListener):
                                     }
                                 }
                             data = json.dumps(response)
-                            client.send(
-                                0, CMDTYPE_JSONRPC_RES, pack_info.srcUnitId, pack_info.srcUnitClientId, -1, data, 'utf-8')
+                            client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
                     except Exception as e:
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').exception(
