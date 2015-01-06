@@ -153,8 +153,15 @@ Python3.4 以及以上版本已经在标准库中包含了虚拟环境 `venv <ht
 
 .. hint::
   
-  本程序除 Python stdlib 外唯一的依赖包是 `smartbus-client-python <https://pypi.python.org/pypi/smartbus-client-python>`_ 。
-  可访问其主页，获取下载与安装方法。
+  本程序除 Python stdlib 外的依赖包有：
+
+  * `smartbus-client-python <https://pypi.python.org/pypi/smartbus-client-python>`_
+  
+  	用于通过smartbus体系与IPSC服务器通信
+
+  * `tornado <http://www.tornadoweb.org/>`_ 
+
+  	用于实现HTTP服务器
 
   .. attention::
 
@@ -174,12 +181,12 @@ Python3.4 以及以上版本已经在标准库中包含了虚拟环境 `venv <ht
 
 执行::
 
-    python run_sbusr.py
+    python sbusr_cli.py run
 
 启动这个程序
 
 执行::
 
-    python run_sbusr.py --help
+    python sbusr_cli.py --help
 
 查看其具体的命令行参数
