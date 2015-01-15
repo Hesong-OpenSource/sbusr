@@ -198,11 +198,9 @@ def startup(args):
         _sbc.connect()
         globalvars.ipc_smartbusclient = _sbc
 
-    # startup settings' auto-reload
-#     threading.Thread(target=run_auto_reload_settings).start()
-
     # setup tornado-web server
     application = web.Application([
+        (r"/sys/", webhandlers.FlowHandler),
         (r"/api/flow", webhandlers.FlowHandler),
     ])
     global _http_server

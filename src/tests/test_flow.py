@@ -46,7 +46,7 @@ class PackInfo:
         self.dstUnitId = dstUnitId
         self.dstUnitClientId = dstUnitClientId
         self.dstUnitClientType = dstUnitClientType
-        
+
 
 settings.SMARTBUS_CONFIG = {
     "type": "ipc",
@@ -65,10 +65,10 @@ prog_args = Object
 prog_args.more_detailed_logging = True
 
 # class TestFlow(unittest.TestCase):
-# 
+#
 #     def setUp(self):
 #         settings.WEBSERVER_LISTEN = (random.randint(60000, 65535), '127.0.0.1')
-#         
+#
 #         def server_thread_rountine():
 #             self._thread_started_cond.acquire()
 #             self._thread_started_cond.notify()
@@ -76,16 +76,16 @@ prog_args.more_detailed_logging = True
 #             with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
 #                 mock_smbipc_cls.__lib = True
 #                 mock_smbipc_cls.initialize = MagicMock(return_value=True)
-#                 
+#
 #                 mock_smbipc_inst = mock_smbipc_cls.return_value
 #                 invokeid = random.randint(1, 65536)
 #                 mock_smbipc_inst.invokeFlow.return_value = invokeid
-#                 
+#
 #                 self.invokeid = invokeid
 #                 self.invokflow = mock_smbipc_inst.invokeFlow
-#                 
+#
 #                 server.startup(prog_args)
-#         
+#
 #         self._thread_started_cond = threading.Condition()
 #         self._thread = threading.Thread(target=server_thread_rountine)
 #         self._thread.daemon = True
@@ -95,19 +95,19 @@ prog_args.more_detailed_logging = True
 #         self._thread_started_cond.release()
 #         # sleep awhile to ensure the IOLOOP startup
 #         time.sleep(1)
-# 
+#
 #     def tearDown(self):
 #         server.stop()
-# 
-# 
-#            
-# 
+#
+#
+#
+#
 #     def test_invokeflow(self):
 #         logging.info('begin of test_invokeflow')
-#           
+#
 #         import http.client
-#           
-#          
+#
+#
 #         #
 #         body = {'server':0,
 #                 'process':0,
@@ -125,11 +125,11 @@ prog_args.more_detailed_logging = True
 #             hresp = hc.getresponse()
 #             self.assertEqual(hresp.status, 200)
 #             hresp_body = hresp.read()
-#             print(hresp_body)                
+#             print(hresp_body)
 #             http_thread_stopped_cond.acquire()
 #             http_thread_stopped_cond.notify()
 #             http_thread_stopped_cond.release()
-#          
+#
 #         http_thread_started_cond = threading.Condition()
 #         http_thread_stopped_cond = threading.Condition()
 #         http_thread = threading.Thread(target=http_thread_routine)
@@ -159,7 +159,7 @@ prog_args.more_detailed_logging = True
 #         http_thread_stopped_cond.wait()
 #         http_thread_stopped_cond.release()
 
-            
+
 
 
 if __name__ == "__main__":
