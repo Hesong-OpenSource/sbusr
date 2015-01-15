@@ -12,10 +12,10 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
+__updated__ = '2015-01-15'
+
 import sys
-
 PY3K = sys.version_info[0] > 2
-
 import logging
 import time
 import json

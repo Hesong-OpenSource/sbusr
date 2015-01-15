@@ -10,6 +10,8 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
+__updated__ = '2015-01-15'
+
 import sys
 
 PY3K = sys.version_info[0] > 2
@@ -32,14 +34,6 @@ import settings
 import globalvars
 import executor
 import webhandlers
-
-_executor = None
-'''全局 RPC 执行器
-
-进程池模式中，它仅在主进程有效
-
-类型是 :class:`executor.Executor`
-'''
 
 
 def _smartbus_global_connect(unitid, clientid, clienttype, accessunit, status, ext_info):
@@ -93,7 +87,7 @@ def _smartbus_disconnected(client):
 
 
 def _smartbus_receive_text(client, pack_info, txt):
-    _executor.put(client, pack_info, txt)
+    globalvars.executor.put(client, pack_info, txt)
 
 
 def _smartbus_invoke_flow_ack(packInfo, project, invokeId, ack, msg):
@@ -115,7 +109,6 @@ def _smartbus_invoke_flow_ack(packInfo, project, invokeId, ack, msg):
             '_smartbus_invoke_flow_ack')
 
 _ioloopstopped = threading.Condition()
-_http_server = None
 
 def startup(args):
     '''启动服务
@@ -161,10 +154,9 @@ def startup(args):
     # ##############################################
     # 启动 smartbus 监听器
     logging.info('new Executor()')
-    global _executor
-    _executor = executor.Executor(**settings.EXECUTOR_CONFIG)
+    globalvars.executor = executor.Executor(**settings.EXECUTOR_CONFIG)
     logging.info('executor.start()')
-    _executor.start()
+    globalvars.executor.start()
     #####################################
     # 初始化 SmartBus 客户端
     smartbus_type = settings.SMARTBUS_CONFIG['type'].strip().upper()
@@ -200,12 +192,11 @@ def startup(args):
 
     # setup tornado-web server
     application = web.Application([
-        (r"/sys/", webhandlers.FlowHandler),
+        (r"/sys/reset", webhandlers.ResetHandler),
         (r"/api/flow", webhandlers.FlowHandler),
     ])
-    global _http_server
-    _http_server = httpserver.HTTPServer(application)
-    _http_server.listen(*settings.WEBSERVER_LISTEN)
+    webserver = httpserver.HTTPServer(application)
+    webserver.listen(*settings.WEBSERVER_LISTEN)
     logging.info('http server listening at %s ...', settings.WEBSERVER_LISTEN)
     logging.info('ioloop.IOLoop.instance().start() >>>')
     ioloop.IOLoop.instance().start()
@@ -218,7 +209,7 @@ def startup(args):
 def stop():
     logging.warn('stopping...')
     logging.warn('stopping executor...')
-    _executor.stop()
+    globalvars.executor.stop()
     logging.warn('executor stopped!')
     logging.warn('stopping IOLoop...')
     _ioloopstopped.acquire()

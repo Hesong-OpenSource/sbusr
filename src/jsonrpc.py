@@ -6,6 +6,8 @@
 :author: 刘雪彦 <lxy@hesong.net>
 '''
 
+__updated__ = '2015-01-15'
+
 import sys
 import json
 import datetime

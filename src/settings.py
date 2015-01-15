@@ -85,9 +85,9 @@ WEBSERVER_LISTEN = (
 """
 
 EXECUTOR_CONFIG = {
-    "queue_maxsize": 10000,
-    "pool_processes": 4,
-    "pool_maxtasksperchild": 10000
+    "queue_maxsize": 1000,
+    "pool_processes": None,
+    "pool_maxtasksperchild": 1000
 }
 '''执行器设置
 
@@ -115,7 +115,7 @@ FLOW_ACK_TIMEOUT = 15
 LOGGING_CONFIG = {
     "version": 1,
     "root": {
-        "level": "INFO",
+        "level": "DEBUG",
         "handlers": [
             "console",
             "file",
