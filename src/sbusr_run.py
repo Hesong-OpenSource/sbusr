@@ -1,12 +1,44 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''sbsur 命令行
+'''sbsur_run 命令行
+
+运行 sbusr 服务程序
 
 :author:     刘雪彦 <lxy@hesong.net>
 :copyright:  2013 Hesong Info-Tech. All rights reserved.
 :license:    commercial
 :contact:    lxy@hesong.net
+
+.. program:: sbusr_run.py
+
+在当前终端/命令行窗口中运行该程序
+
+直接运行：
+
+    POSIX（需要权限）::
+
+        ./sbusr_run.py <option> {run}
+
+    Windows（需要权限与文件关联）::
+
+        sbusr_run.py <option> {run}               
+
+使用 `Python <https://www.python.org>`_ 运行::
+
+    python sbusr_run.py <option> {run}
+
+.. option:: -V, --version
+
+   显示版本信息。
+
+.. option:: -m, --more-detailed-logging
+
+   输出更详细的日志。默认为 ``False`` 。
+
+.. option:: -h, --help
+
+    输出帮助信息
 '''
 
 from __future__ import print_function, unicode_literals, absolute_import
@@ -78,21 +110,11 @@ runtime:
     try:
         # Setup argument parser
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
-        parser.add_argument('action', type=str, choices=['run'], nargs=1
-                            , help='run: start to run the program'
-                            )
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
         parser.add_argument("-m", "--more-detailed-logging", action="store_true"
                             , help="generate more detailed logging data.")
-
         # Process arguments
         args = parser.parse_args()
-
-        # startup server
-        print('startup server')
-        server.startup(args)
-
-        return 0
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
         return 0
@@ -103,6 +125,12 @@ runtime:
         sys.stderr.write(program_name + ": " + repr(e) + "\n")
         sys.stderr.write(indent + "  for help use --help" + "\n")
         return 2
+
+    # startup server
+    print('startup server')
+    server.startup(args)
+
+    return 0
 
 if __name__ == "__main__":
     if DEBUG:

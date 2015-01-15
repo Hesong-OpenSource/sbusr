@@ -101,22 +101,22 @@ Python3.4 以及以上版本已经在标准库中包含了虚拟环境 `venv <ht
 下载之后，将源代码放在一个新建的目录，如 ``/your/dir/sbusr``
 该项目的目录结构是::
 
-    sbusr\┐
-          └ src\┐
-                ├ methods\
-                ├ xxx.py
-                ├ xxx.py
-                ├ xxx.py
-                └ ...py
+    sbusr
+      `-src
+          `-methods
+              |-xxx.py
+              |-xxx.py
+              |-xxx.py
+              `-...py 
 
 将 ``src`` 目录中的所有文件移动到项目的根目录中，使得该项目的目录结构变为::
 
-    sbusr\┐
-          ├ methods\
-          ├ xxx.py
-          ├ xxx.py
-          ├ xxx.py
-          └ ...py    
+    sbusr
+      `-methods
+        |-xxx.py
+        |-xxx.py
+        |-xxx.py
+        `-...py    
 
 3 安装依赖包
 *************
@@ -181,12 +181,12 @@ Python3.4 以及以上版本已经在标准库中包含了虚拟环境 `venv <ht
 
 执行::
 
-    python sbusr_cli.py run
+    python sbusr_run.py run
 
 启动这个程序
 
 执行::
 
-    python sbusr_cli.py --help
+    python sbusr_run.py --help
 
 查看其具体的命令行参数

@@ -1,5 +1,5 @@
-subsr API manual
-================
+API
+===
 
 .. toctree::
    :maxdepth: 4
@@ -9,7 +9,7 @@ subsr API manual
    jsonrpc
    loggingqueue
    methods
-   sbusr_cli
+   sbusr_run
    server
    settings
    webhandlers

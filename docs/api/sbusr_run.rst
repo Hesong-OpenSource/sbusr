@@ -1,7 +1,7 @@
-sbusr_cli module
+sbusr_run module
 ================
 
-.. automodule:: sbusr_cli
+.. automodule:: sbusr_run
     :members:
     :undoc-members:
     :show-inheritance:
