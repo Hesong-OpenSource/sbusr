@@ -272,5 +272,5 @@ def _subproc_init(progargs, logging_queue, logging_root_level):
         del logging.root.handlers[:]
     logging.root.addHandler(QueueHandler(logging_queue))
     logging.root.setLevel(logging_root_level)
-    logging.info('subproc init')
+    logging.info('subprocess initialize')
     globalvars.prog_args = progargs

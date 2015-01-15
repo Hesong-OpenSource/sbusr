@@ -57,7 +57,7 @@ settings.SMARTBUS_CONFIG = {
 }
 
 prog_args = Object
-prog_args.more_detailed_logging = True
+prog_args.verbose = True
 
 class TestRpc(unittest.TestCase):
 
