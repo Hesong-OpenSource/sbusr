@@ -110,7 +110,7 @@ class FlowHandler(RequestHandler):
         self._invoking_futures.pop(self._invoke_id)
 
     @classmethod
-    def set_flow_ack(cls, ack: FlowInvokeAck):
+    def set_flow_ack(cls, ack):
         '''设置流程启动执行回执
 
         :param webhandlers.FlowInvokeAck ack: 回执信息

@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'sbusr'
-copyright = '2014, 广州市和声信息技术有限公司'
+copyright = u'2014, 广州市和声信息技术有限公司'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -90,7 +90,7 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+#pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -216,7 +216,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'sbusr.tex', 'sbusr Documentation',
-   '广州市和声信息技术有限公司', 'manual'),
+   u'广州市和声信息技术有限公司', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -246,7 +246,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'sbusr', 'sbusr Documentation',
-     ['广州市和声信息技术有限公司'], 1)
+     [u'广州市和声信息技术有限公司'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -260,7 +260,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'sbusr', 'sbusr Documentation',
-   '广州市和声信息技术有限公司', 'sbusr', 'One line description of project.',
+   u'广州市和声信息技术有限公司', 'sbusr', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -281,9 +281,9 @@ texinfo_documents = [
 
 # Bibliographic Dublin Core info.
 epub_title = 'sbusr'
-epub_author = '广州市和声信息技术有限公司'
-epub_publisher = '广州市和声信息技术有限公司'
-epub_copyright = '2014, 广州市和声信息技术有限公司'
+epub_author = u'广州市和声信息技术有限公司'
+epub_publisher = u'广州市和声信息技术有限公司'
+epub_copyright = u'2014, 广州市和声信息技术有限公司'
 
 # The basename for the epub file. It defaults to the project name.
 #epub_basename = 'sbusr'

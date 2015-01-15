@@ -24,6 +24,8 @@ sbusr 文档
 
    配置 <settings>
 
+   自动重加载 <reset>
+
    APIs <api/modules>
 
 ***********
