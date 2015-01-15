@@ -6,12 +6,12 @@ try:
     import queue
 except ImportError:
     import Queue as queue
-    
+
 try:
     import threading
-except ImportError: #pragma: no cover
+except ImportError:  # pragma: no cover
     threading = None
-    
+
 class QueueHandler(logging.Handler):
     """
     This handler sends events to a queue. Typically, it would be used together

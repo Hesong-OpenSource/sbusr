@@ -133,7 +133,7 @@ class Executor(QueueListener):
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').debug(
                                 'call back:\n    result=%s %s\n    duration=%s\n    request=%s',
-                                type(result), result, time.time() - 
+                                type(result), result, time.time() -
                                 begin_time, record
                             )
                         if _id:
@@ -162,13 +162,13 @@ class Executor(QueueListener):
                         if globalvars.prog_args.more_detailed_logging:
                             logging.getLogger('Executor').exception(
                                 'error callback:\n    duration=%s\n    request=%s:\n  %s %s',
-                                time.time() - 
+                                time.time() -
                                 begin_time, record, type(error), error
                             )
                         else:
                             logging.getLogger('Executor').error(
                                 'error callback:\n    %s %s\n    duration=%s\n    request=%s\n  %s %s',
-                                type(error), error, time.time() - 
+                                type(error), error, time.time() -
                                 begin_time, record, type(error), error
                             )
                         if _id:

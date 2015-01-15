@@ -163,9 +163,9 @@ Python3.4 以及以上版本已经在标准库中包含了虚拟环境 `venv <ht
 
   	用于实现HTTP服务器
 
-  .. attention::
+.. attention::
 
-    `smartbus-client-python <https://pypi.python.org/pypi/smartbus-client-python>`_  在安装之后，还需要相应的C语言共享/动态文件，请仔细阅读 `smartbus-client-python api doc <https://readthedocs.org/projects/smartbus-client-python>`_ 。
+	`smartbus-client-python <https://pypi.python.org/pypi/smartbus-client-python>`_  在安装之后，还需要相应的C语言共享/动态文件，请仔细阅读 `smartbus-client-python api doc <https://readthedocs.org/projects/smartbus-client-python>`_ 。
 
     smartbus客户端的共享/动态文件可以在 https://github.com/Hesong-OpenSource/smartbus-client-sdk 下载。
 

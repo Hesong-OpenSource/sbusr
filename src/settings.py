@@ -77,7 +77,7 @@ SMARTBUS_NOTIFY_TTL = 10000
 
 WEBSERVER_LISTEN = (
     8080,  # 监听端口
-    "",    # 监听地址
+    "",  # 监听地址
 )
 """WEB 服务器监听地址与端口.
 

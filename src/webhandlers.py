@@ -8,7 +8,6 @@
 
 import json
 import time
-import logging
 import random
 
 from tornado import ioloop
