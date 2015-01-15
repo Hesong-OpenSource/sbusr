@@ -115,7 +115,7 @@ FLOW_ACK_TIMEOUT = 15
 LOGGING_CONFIG = {
     "version": 1,
     "root": {
-        "level": "DEBUG",
+        "level": "INFO",
         "handlers": [
             "console",
             "file",
