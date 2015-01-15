@@ -23,10 +23,8 @@ PY3K = sys.version_info[0] > 2
 
 import logging.config
 import logging.handlers
-import importlib
 import multiprocessing
 import threading
-import sched
 from functools import partial
 
 import smartbus.netclient
@@ -222,32 +220,3 @@ def stop():
     _ioloopstopped.wait()
     _ioloopstopped.release()
     logging.warn('IOLoop stopped!')
-
-
-def run_auto_reload_settings():
-    logging.debug('run auto reload settings')
-
-    def _action_func():
-        try:
-            logging.debug('reload settings')
-            importlib.reload(settings)
-        except:
-            logging.exception('reload settings')
-        finally:
-            _enter_schd()
-
-    def _get_delay():
-        _default = 120
-        _min = 30
-        try:
-            result = float(settings.RELOAD_INTERVAL)
-            if result < _min:
-                result = _default
-        except:
-            result = 120
-        return result
-
-    _enter_schd = lambda: schd.enter(_get_delay(), 0, _action_func)
-    schd = sched.scheduler()
-    _enter_schd()
-    schd.run()

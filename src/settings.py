@@ -104,14 +104,6 @@ EXECUTOR_CONFIG = {
 .. warning:: 不得删除该变量，不得修改该变量的结构。
 '''
 
-RELOAD_INTERVAL = 120
-'''配置文件重加载时间间隔（秒）
-
-每隔一段时间重加载 :mod:`settings` 模块
-
-默认值：120
-'''
-
 FLOW_ACK_TIMEOUT = 15
 '''流程调用时等待调用结果的最大时间，单位是秒
 '''
