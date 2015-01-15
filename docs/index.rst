@@ -22,9 +22,9 @@ sbusr 文档
 
    IPSC 集成 <ipsc-integration>
 
-   配置 <settings>
+   重新加载 <reset>
 
-   自动重加载 <reset>
+   配置 <settings>
 
    APIs <api/modules>
 

@@ -81,6 +81,7 @@ class Executor(QueueListener):
             ),
             maxtasksperchild=pool_maxtasksperchild
         )
+        self._pool = None
         if PY3K:
             super().__init__(queue.Queue(queue_maxsize))
         else:
@@ -89,15 +90,12 @@ class Executor(QueueListener):
             self._logger = logging.getLogger(self.__class__.__qualname__)
         else:
             self._logger = logging.getLogger(self.__class__.__name__)
-        self._logger.info(
-            'construct: queue_maxsize=%s, pool_processes=%s',
-            queue_maxsize, pool_processes)
 
     def put(self, client, pack_info, txt):
         self.queue.put((client, pack_info, txt, time.time()))
 
     def start(self):
-        self._logger.info('start() >>>')
+        self._logger.info('start() >>>. pool arguments: %s', self._pool_kdargs)
         self._pool = Pool(**self._pool_kdargs)
         if PY3K:
             super().start()
@@ -108,15 +106,15 @@ class Executor(QueueListener):
     def stop(self):
         self._logger.info('stop() >>>')
         super().stop()
-        self._logger.debug('pool.terminate()')
+        self._logger.debug('pool.terminate() ...')
         self._pool.terminate()
-        self._logger.debug('pool.join()')
+        self._logger.debug('pool.join() ...')
         self._pool.join()
         self._pool = None
         self._logger.info('stop() <<<')
 
     def handle(self, record):
-        if globalvars.prog_args.more_detailed_logging:
+        if globalvars.prog_args.verbose:
             self._logger.debug('handle(record=%s)', record)
         request = None
         try:
@@ -124,8 +122,9 @@ class Executor(QueueListener):
             try:
                 request, _, _ = jsonrpc.parse(txt)
             except Exception as e:
-                self._logger.error(
-                    'jsonrpc parse error: %s %s', type(e), e)
+                if globalvars.prog_args.verbose:
+                    self._logger.error(
+                        'JSONRPC parse error: %s %s', type(e), e)
             if request:
                 _id = request.get('id')
                 _method = request['method']
@@ -134,27 +133,32 @@ class Executor(QueueListener):
 
                 def _callback(result):
                     try:
-                        if isinstance(result, Exception):
+                        if isinstance(result, Exception):  # 如果返回结果是异常，就返回错误结果，并抛出异常
                             error = result
-                            response = {
-                                'jsonrpc': jsonrpc.jsonrpc_version,
-                                'id': _id,
-                                'error': {
-                                    'code':-32500,
-                                    'message': '{} {}'.format(type(error), error),
-                                    'data': None,
-                                }
-                            }
-                            data = json.dumps(response)
-                            client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
-                            raise error
-                        if globalvars.prog_args.more_detailed_logging:
+                            if _id:  # 如果有 RPC ID ，就需要返回错误结果
+                                if isinstance(error, jsonrpc.Error):  # 处理 jsonrpc.Error 异常
+                                    response = error.to_dict()
+                                    response['id'] = _id
+                                else:  # 处理其它异常
+                                    response = {
+                                        'jsonrpc': jsonrpc.jsonrpc_version,
+                                        'id': _id,
+                                        'error': {
+                                            'code':-32500,
+                                            'message': '{} {}'.format(type(error), error),
+                                            'data': None,
+                                        }
+                                    }
+                                data = json.dumps(response)
+                                client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
+                            raise error  # 抛出异常
+                        if globalvars.prog_args.verbose:
                             self._logger.debug(
                                 'call back:\n    result=%s %s\n    duration=%s\n    request=%s',
                                 type(result), result, time.time() -
                                 begin_time, record
                             )
-                        if _id:
+                        if _id:  # 如果有 RPC ID ，就需要返回执行结果
                             response = {
                                 'jsonrpc': jsonrpc.jsonrpc_version,
                                 'id': _id,
@@ -163,12 +167,12 @@ class Executor(QueueListener):
                             data = json.dumps(response)
                             client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
                     except Exception as e:
-                        if globalvars.prog_args.more_detailed_logging:
+                        if globalvars.prog_args.verbose:
                             self._logger.exception(
-                                'error occured in _callback():\n    request=%s', record)
+                                'error occurred in handle._callback():\n    request=%s', record)
                         else:
-                            self._logger.exception(
-                                'error occured in _callback():\n    error=%s', e)
+                            self._logger.error(
+                                'error occurred in handle._callback():\n    error: %s %s', type(e), e)
                 pass  # end of _callback
 
                 def _error_callback(error):
@@ -177,7 +181,7 @@ class Executor(QueueListener):
                         # ExceptionWithTraceback should derive from Exception
                         if not isinstance(error, Exception):
                             error = error.exc
-                        if globalvars.prog_args.more_detailed_logging:
+                        if globalvars.prog_args.verbose:
                             self._logger.exception(
                                 'error callback:\n    duration=%s\n    request=%s:\n  %s %s',
                                 time.time() -
@@ -189,11 +193,11 @@ class Executor(QueueListener):
                                 type(error), error, time.time() -
                                 begin_time, record, type(error), error
                             )
-                        if _id:
-                            if isinstance(error, jsonrpc.Error):
+                        if _id:  # 如果有 RPC ID ，就需要返回错误结果
+                            if isinstance(error, jsonrpc.Error):  # JSONRPC 异常
                                 response = error.to_dict()
                                 response['id'] = _id
-                            else:
+                            else:  # 其它异常
                                 response = {
                                     'jsonrpc': jsonrpc.jsonrpc_version,
                                     'id': _id,
@@ -206,15 +210,15 @@ class Executor(QueueListener):
                             data = json.dumps(response)
                             client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
                     except Exception as e:
-                        if globalvars.prog_args.more_detailed_logging:
+                        if globalvars.prog_args.verbose:
                             self._logger.exception(
-                                'error occured in _error_callback():\n    request=%s', record)
+                                'error occurred in handle._error_callback():\n    request=%s', record)
                         else:
                             self._logger.error(
-                                'error occured in _error_callback():\n    error=%s', e)
+                                'error occurred in handle._error_callback():\n    error=%s', e)
                 pass  # end of _error_callback
 
-                if globalvars.prog_args.more_detailed_logging:
+                if globalvars.prog_args.verbose:
                     self._logger.debug(
                         'apply_async to %s', _poolfunc)
                 if sys.version_info[0] < 3:
@@ -229,14 +233,14 @@ class Executor(QueueListener):
                     )
 
         except Exception as e:
-            if globalvars.prog_args.more_detailed_logging:
+            if globalvars.prog_args.verbose:
                 self._logger.exception(
-                    'error occured in handle():\n    request=%s',
+                    'error occurred in handle():\n    request=%s',
                     record)
             else:
                 self._logger.error(
-                    'error occured in handle():\n    error=%s',
-                    e)
+                    'error occurred in handle():\n    error: %s %s',
+                    type(e), e)
 
 
 mod_map_lock = threading.Lock()

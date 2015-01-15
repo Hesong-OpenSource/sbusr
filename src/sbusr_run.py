@@ -111,8 +111,7 @@ runtime:
         # Setup argument parser
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
-        parser.add_argument("-m", "--more-detailed-logging", action="store_true"
-                            , help="generate more detailed logging data.")
+        parser.add_argument("-v", "--verbose", action="store_true", help="output verbose logging text.")
         # Process arguments
         args = parser.parse_args()
     except KeyboardInterrupt:
