@@ -25,12 +25,9 @@
 
 ``sbusr`` 通过其内置 Web 服务器接收重加载命令。
 
-重启命令是发送到 ``http://host[:port]/sys/reset`` 的 HTTP GET 请求。可使用任何 HTTP 客户端来发送该命令，如：
-
-.. code-block:: sh
+重启命令是发送到 ``http://host[:port]/sys/reset`` 的 HTTP GET 请求。可使用任何 HTTP 客户端来发送该命令，如::
 
     curl http://localhost:8080/sys/reset
-
 
 .. note::
 

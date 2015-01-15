@@ -78,32 +78,47 @@ RPC请求一律由流程通过 ``smartbusSendData`` 向 ``sbusr`` 异步发送
 
 .. attention:: 由于IPSC脚本引擎的限制， ``AsynchInvoke`` 所在行不能换行书写！
 
+--------------------
+sbusr 自定义脚本
+--------------------
+
+为了简化调用步骤，我们提供了封装上述“请求-回复”过程的自定义脚本，请参见 http://github.com/Hesong-OpenSource/sbusr-flow-scripts
+
 *********
 启动流程
 *********
 
-``sbusr`` 提供一个迷你型的 HTTP 服务器，并在 ``/api/flow`` 这个路径上接受 ``POST`` 请求。调用方可在地址上，通过POST请求启动流程
+``sbusr`` 提供一个迷你型的 HTTP 服务器，并在 ``/api/flow`` 这个路径上接受 ``POST`` 请求。调用方可向该HTTP地址发送POST请求启动流程。
 
 =============
 流程参数格式
 =============
 
-流程启动参数一律使用编码为 UTF-8的JSON格式在 POST 请求的BODY中指明。这个 JSON OBJECT 数据的属性定义是：
+流程启动参数一律使用编码为UTF-8的JSON对象在POST请求的BODY中定义。这个JSON对象的属性有：
 
-:param int server: 要启动流程的IPSC服务在Smartbus体系中的 ``unitid``
-
-    如果不提供该参数，则 ``sbusr`` 会随机的从它所能连接到的IPSC中选择一个
-
-:param int process: 要启动流程的IPSC服务在Smartbus体系中的 ``clientid``
+:server: 要启动流程的IPSC服务在Smartbus体系中的 ``unitid``
 
     如果不提供该参数，则 ``sbusr`` 会随机的从它所能连接到的IPSC中选择一个
 
-:param str project: 流程所项目的ID
-:param int flow: 流程的ID
+    :数据类型: Number (非负整数)
 
-:param params: 传入流程“子流程开始节点”的参数
+:process: 要启动流程的IPSC服务在Smartbus体系中的 ``clientid``
 
-    如果要向流程传入多个参数，则该参数应是一个 JSON ARRAY
+    如果不提供该参数，则 ``sbusr`` 会随机的从它所能连接到的IPSC中选择一个
+
+    :数据类型: Number (非负整数)
+
+:project: 流程所项目的ID
+
+    :数据类型: String
+
+:flow: 流程的ID
+
+    :数据类型: String
+
+:params: 传入流程“子流程开始”节点的参数列表
+
+    :数据类型: Array
 
 举例：
 
@@ -111,7 +126,6 @@ RPC请求一律由流程通过 ``smartbusSendData`` 向 ``sbusr`` 异步发送
 
     POST /api/flow HTTP/1.1
     Content-Type: application/json
-    Content-Length: xxx
 
     {
         "project": "Project1",
