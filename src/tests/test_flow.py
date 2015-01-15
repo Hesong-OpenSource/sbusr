@@ -12,57 +12,57 @@
 
 from __future__ import absolute_import
 
-import unittest
-from unittest.mock import patch, MagicMock
-
-import uuid
-import json
-import logging
-import threading
-import time
-
-import jsonrpc
-import executor
-import globalvars
-import settings
-import server
-import random
-
-logging_fmt = logging.Formatter(fmt='%(asctime)s <%(processName)-10s,%(threadName)-10s> %(levelname)-8s %(name)s - %(message)s')
-logging_handler = logging.StreamHandler()
-logging_handler.setFormatter(logging_fmt)
-del logging.root.handlers[:]
-logging.root.handlers.append(logging_handler)
-logging.root.setLevel(logging.DEBUG)
-
-class Object: pass
-
-
-class PackInfo:
-    def __init__(self, srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType):
-        self.srcUnitId = srcUnitId
-        self.srcUnitClientId = srcUnitClientId
-        self.srcUnitClientType = srcUnitClientType
-        self.dstUnitId = dstUnitId
-        self.dstUnitClientId = dstUnitClientId
-        self.dstUnitClientType = dstUnitClientType
-
-
-settings.SMARTBUS_CONFIG = {
-    "type": "ipc",
-    "initialize": {
-        "clientid": 19,
-        "clienttype": 19
-    },
-    "instance":  {
-        "username": None,
-        "password": None,
-        "extInfo": None,
-    }
-}
-
-prog_args = Object
-prog_args.more_detailed_logging = True
+# import unittest
+# from unittest.mock import patch, MagicMock
+# 
+# import uuid
+# import json
+# import logging
+# import threading
+# import time
+# 
+# import jsonrpc
+# import executor
+# import globalvars
+# import settings
+# import server
+# import random
+# 
+# logging_fmt = logging.Formatter(fmt='%(asctime)s <%(processName)-10s,%(threadName)-10s> %(levelname)-8s %(name)s - %(message)s')
+# logging_handler = logging.StreamHandler()
+# logging_handler.setFormatter(logging_fmt)
+# del logging.root.handlers[:]
+# logging.root.handlers.append(logging_handler)
+# logging.root.setLevel(logging.DEBUG)
+# 
+# class Object: pass
+# 
+# 
+# class PackInfo:
+#     def __init__(self, srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType):
+#         self.srcUnitId = srcUnitId
+#         self.srcUnitClientId = srcUnitClientId
+#         self.srcUnitClientType = srcUnitClientType
+#         self.dstUnitId = dstUnitId
+#         self.dstUnitClientId = dstUnitClientId
+#         self.dstUnitClientType = dstUnitClientType
+# 
+# 
+# settings.SMARTBUS_CONFIG = {
+#     "type": "ipc",
+#     "initialize": {
+#         "clientid": 19,
+#         "clienttype": 19
+#     },
+#     "instance":  {
+#         "username": None,
+#         "password": None,
+#         "extInfo": None,
+#     }
+# }
+# 
+# prog_args = Object
+# prog_args.more_detailed_logging = True
 
 # class TestFlow(unittest.TestCase):
 #
@@ -162,7 +162,6 @@ prog_args.more_detailed_logging = True
 
 
 
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()
-\
+# if __name__ == "__main__":
+#     # import sys;sys.argv = ['', 'Test.testName']
+#     unittest.main()
