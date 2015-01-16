@@ -199,6 +199,7 @@ latex_elements = {
 'preamble': '''
 \usepackage{fontspec}
 \usepackage{xeCJK}
+\setcounter{tocdepth}{4}
 \setmainfont{Courier}
 \usepackage{indentfirst}
 \setlength{\parindent}{2em}

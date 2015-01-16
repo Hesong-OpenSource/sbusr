@@ -7,9 +7,9 @@
 sbusr 文档
 ############
 
-*******
-内容
-*******
+*********
+说明文档
+*********
 
 .. toctree::
    :maxdepth: 2
@@ -26,6 +26,13 @@ sbusr 文档
 
    配置 <settings>
 
+*********
+API 手册
+*********
+
+.. toctree::
+   :maxdepth: 2
+   
    APIs <api/modules>
 
 ***********
