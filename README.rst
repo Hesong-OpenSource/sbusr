@@ -15,6 +15,8 @@ CI 状态
 .. image:: https://travis-ci.org/Hesong-OpenSource/sbusr.svg?branch=develop
     :target: https://travis-ci.org/Hesong-OpenSource/sbusr
 
+如果看不见图片，请直接访问 https://travis-ci.org/Hesong-OpenSource/sbusr 查看构建状态。
+
 介绍
 ######
 

@@ -32,7 +32,7 @@ API 手册
 
 .. toctree::
    :maxdepth: 2
-   
+
    APIs <api/modules>
 
 ***********
@@ -42,4 +42,3 @@ API 手册
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
