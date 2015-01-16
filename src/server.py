@@ -221,7 +221,7 @@ def run(args):
 def stop():
     '''停止服务
     
-    .. attention:: 该函数是异步的，在它执行后， :func:`server.start` 将会退出 IOLoop ，但是 `stop` 的返回与之无关。
+    .. attention:: 该函数是异步的，在它执行后， :func:`server.run` 将会退出 IOLoop ，但是 `stop` 的返回与之无关。
     '''
     logging.warning('stop()')
     ioloop.IOLoop.instance().stop()

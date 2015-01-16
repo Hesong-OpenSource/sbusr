@@ -71,7 +71,7 @@ class TestRpc(unittest.TestCase):
             with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
                 mock_smbipc_cls.__lib = True
                 mock_smbipc_cls.initialize = MagicMock(return_value=True)
-                server.startup(prog_args)
+                server.run(prog_args)
 
         self._thread_started_cond = threading.Condition()
         self._thread = threading.Thread(target=server_thread_rountine)
