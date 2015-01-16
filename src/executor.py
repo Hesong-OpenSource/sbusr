@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-''' 该模块定义了 MySQL 任务执行器，以及执行体
+''' 该模块定义了 RPC 任务执行器
 
 服务器模块 :mod:`server` 将来自 smartbus 的请求传递给执行器类 :class:`Executor` 的实例，
 执行器解析请求的 JSON RPC 格式，并分配执行体，在线程池中执行，
@@ -12,7 +12,7 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
-__updated__ = '2015-01-15'
+__updated__ = '2015-01-16'
 
 import sys
 PY3K = sys.version_info[0] > 2
@@ -40,13 +40,6 @@ import inspect
 import jsonrpc
 import globalvars
 import settings
-
-
-CMDTYPE_JSONRPC_REQ = 211
-'''标志：JSONRPC 请求. 用于 smartbus 客户端 send 函数的 cmd_type 参数.'''
-
-CMDTYPE_JSONRPC_RES = 212
-'''标志：JSONRPC 回复. 用于 smartbus 客户端 send 函数的 cmd_type 参数.'''
 
 
 class Executor(QueueListener):

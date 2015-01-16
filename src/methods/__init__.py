@@ -34,10 +34,10 @@ def plus(*args):
     return sum(args)
 
 
-def sleep(seconds: float):
+def sleep(seconds):
     '''睡眠
 
-    :param seconds: 睡眠时间，时间为秒
+    :param float seconds: 睡眠时间，时间为秒
     '''
     time.sleep(seconds)
 
