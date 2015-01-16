@@ -15,16 +15,14 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
-__updated__ = '2015-01-15'
+__updated__ = '2015-01-16'
 
 import sys
-
 PY3K = sys.version_info[0] > 2
 
 import logging.config
 import logging.handlers
 import multiprocessing
-import threading
 from functools import partial
 
 import smartbus.netclient
@@ -47,14 +45,14 @@ def _smartbus_global_connect(unitid, clientid, clienttype, accessunit, status, e
     )
     if clienttype == SMARTBUS_NODECLI_TYPE_IPSC:
         if status == 0:  # 丢失连接
-            logging.getLogger('smartbusclient').warn(
+            logging.getLogger('smartbusclient').warning(
                 'IPSC<%s:%s> connection lost',
                 unitid, clientid, clienttype
             )
             try:
                 globalvars.ipsc_set.remove((unitid, clientid))
             except KeyError:
-                logging.getLogger('smartbusclient').warn(
+                logging.getLogger('smartbusclient').warning(
                     'IPSC<%s:%s> not found in the list',
                     unitid, clientid
                 )
@@ -111,14 +109,17 @@ def _smartbus_invoke_flow_ack(packInfo, project, invokeId, ack, msg):
         logging.getLogger('smartbusclient').exception(
             '_smartbus_invoke_flow_ack')
 
-_ioloopstopped = threading.Condition()
-
-def startup(args):
-    '''启动服务
+def run(args):
+    '''运行服务
 
     :param args: 命令行参数
+    
+    .. attention:: 该函数将“阻塞”，直到服务结束才会返回
     '''
+
+    # 程序启动参数赋值到全局变量
     globalvars.prog_args = args
+
     ###########################
     # 初始化logging设置
     try:
@@ -155,7 +156,7 @@ def startup(args):
     logging.info('--- startup ---')
     logging.info('%s', globalvars.startuptxt)
     # ##############################################
-    # 启动 smartbus 监听器
+    # 启动 smartbus 执行器
     logging.info('new Executor()')
     globalvars.executor = executor.Executor(**settings.EXECUTOR_CONFIG)
     logging.info('executor.start()')
@@ -203,20 +204,24 @@ def startup(args):
     logging.info('http server listening at %s ...', settings.WEBSERVER_LISTEN)
     logging.info('ioloop.IOLoop.instance().start() >>>')
     ioloop.IOLoop.instance().start()
-    logging.warn('ioloop.IOLoop.instance().start() <<<')
-    _ioloopstopped.acquire()
-    _ioloopstopped.notify()
-    _ioloopstopped.release()
+    logging.warning('ioloop.IOLoop.instance().start() <<<')
+
+    # stop
+    # stop executor
+    logging.warning('stopping...')
+    logging.warning('stopping executor...')
+    globalvars.executor.stop()
+    logging.warning('executor stopped!')
+    # stop main_logging_listener
+    logging.warning('stopping main logging listener...')
+    globalvars.main_logging_listener.stop()
+    logging.warning('main logging listener stopped!')
 
 
 def stop():
-    logging.warn('stopping...')
-    logging.warn('stopping executor...')
-    globalvars.executor.stop()
-    logging.warn('executor stopped!')
-    logging.warn('stopping IOLoop...')
-    _ioloopstopped.acquire()
+    '''停止服务
+    
+    .. attention:: 该函数是异步的，在它执行后， :func:`server.start` 将会退出 IOLoop ，但是 `stop` 的返回与之无关。
+    '''
+    logging.warning('stop()')
     ioloop.IOLoop.instance().stop()
-    _ioloopstopped.wait()
-    _ioloopstopped.release()
-    logging.warn('IOLoop stopped!')

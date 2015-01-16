@@ -90,7 +90,7 @@ WEBSERVER_LISTEN = (
 
 EXECUTOR_CONFIG = {
     "queue_maxsize": 1000,
-    "pool_processes": None,
+    "pool_processes": 1,
     "pool_maxtasksperchild": 1000
 }
 '''执行器设置

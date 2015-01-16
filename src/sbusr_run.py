@@ -45,6 +45,7 @@ from __future__ import print_function, unicode_literals, absolute_import
 
 import sys
 import os
+import signal
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -52,7 +53,7 @@ from argparse import RawDescriptionHelpFormatter
 __all__ = []
 __version__ = 0.1
 __date__ = '2013-12-13'
-__updated__ = '2015-01-15'
+__updated__ = '2015-01-16'
 
 DEBUG = 0
 TESTRUN = 0
@@ -112,8 +113,17 @@ runtime:
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
         parser.add_argument("-v", "--verbose", action="store_true", help="output verbose logging text.")
+
         # Process arguments
         args = parser.parse_args()
+
+        # set INTERRUPT signal handler
+        def handle_sigint(signum, frame):
+            print('SIGINT handled!')
+            server.stop()
+
+        signal.signal(signal.SIGINT, handle_sigint)
+
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
         return 0
@@ -127,7 +137,8 @@ runtime:
 
     # startup server
     print('startup server')
-    server.startup(args)
+    server.run(args)
+    print('program terminated')
 
     return 0
 
