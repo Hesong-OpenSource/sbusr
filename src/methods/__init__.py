@@ -21,10 +21,12 @@ def add(a, b):
     '''加法'''
     return a + b
 
-def echo(txt: str) -> str:
+def echo(txt):
     '''原样返回收到的内容
 
-    :param txt: 字符串
+    :param str txt: 字符串
+    :return: 原样返回 ``txt`` 字符串
+    :rtype: str
     '''
     return txt
 
