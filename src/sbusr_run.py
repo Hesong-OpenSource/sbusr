@@ -7,7 +7,6 @@
 
 :author:     刘雪彦 <lxy@hesong.net>
 :copyright:  2013 Hesong Info-Tech. All rights reserved.
-:license:    commercial
 :contact:    lxy@hesong.net
 
 .. program:: sbusr_run.py
@@ -16,23 +15,23 @@
 
 直接运行：
 
-    POSIX（需要权限）::
+POSIX（需要权限）::
 
-        ./sbusr_run.py <option> {run}
+    ./sbusr_run.py <option>
 
-    Windows（需要权限与文件关联）::
+Windows（需要权限与文件关联）::
 
-        sbusr_run.py <option> {run}               
+    sbusr_run.py <option>        
 
 使用 `Python <https://www.python.org>`_ 运行::
 
-    python sbusr_run.py <option> {run}
+    python sbusr_run.py <option>
 
 .. option:: -V, --version
 
    显示版本信息。
 
-.. option:: -m, --more-detailed-logging
+.. option:: -v, --verbose
 
    输出更详细的日志。默认为 ``False`` 。
 
