@@ -175,8 +175,7 @@ def run(args):
             _sbc.onConnectFail = partial(_smartbus_connect_fail, _sbc)
             _sbc.onDisconnect = partial(_smartbus_disconnected, _sbc)
             _sbc.onReceiveText = partial(_smartbus_receive_text, _sbc)
-            _sbc.onInvokeFlowAcknowledge = partial(
-                _smartbus_invoke_flow_ack, _sbc)
+            _sbc.onInvokeFlowAcknowledge = _smartbus_invoke_flow_ack
             _sbc.connect()
             globalvars.net_smartbusclients.append(_sbc)
     elif smartbus_type == 'IPC':
@@ -190,7 +189,7 @@ def run(args):
         _sbc.onConnectFail = partial(_smartbus_connect_fail, _sbc)
         _sbc.onDisconnect = partial(_smartbus_disconnected, _sbc)
         _sbc.onReceiveText = partial(_smartbus_receive_text, _sbc)
-        _sbc.onInvokeFlowAcknowledge = partial(_smartbus_invoke_flow_ack, _sbc)
+        _sbc.onInvokeFlowAcknowledge = _smartbus_invoke_flow_ack
         _sbc.connect()
         globalvars.ipc_smartbusclient = _sbc
 
