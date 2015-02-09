@@ -15,7 +15,7 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
-__updated__ = '2015-01-16'
+__updated__ = '2015-02-09'
 
 import sys
 PY3K = sys.version_info[0] > 2
@@ -167,7 +167,7 @@ def run(args):
     if smartbus_type == 'NET':
         unitid = settings.SMARTBUS_CONFIG['initialize']['unitid']
         logging.info('init smartbus net client <%s>', unitid)
-        smartbus.netclient.Client.initialize(unitid)
+        smartbus.netclient.Client.initialize(unitid, _smartbus_global_connect)
         for kwd in settings.SMARTBUS_CONFIG['clients']:
             logging.info('create smartbus net client (%s)', kwd)
             _sbc = smartbus.netclient.Client(**kwd)
@@ -183,7 +183,7 @@ def run(args):
         clientid = settings.SMARTBUS_CONFIG['initialize']['clientid']
         clienttype = settings.SMARTBUS_CONFIG['initialize']['clienttype']
         logging.info('init smartbus ipc client<%s(%s)>', clientid, clienttype)
-        smartbus.ipcclient.Client.initialize(clientid, clienttype)
+        smartbus.ipcclient.Client.initialize(clientid, clienttype, _smartbus_global_connect)
         _sbc = smartbus.ipcclient.Client.instance(
             **settings.SMARTBUS_CONFIG.get('instance', {}))
         _sbc.onConnectSuccess = partial(_smartbus_connect_success, _sbc)
