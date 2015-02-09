@@ -63,7 +63,7 @@ def _smartbus_global_connect(unitid, clientid, clienttype, accessunit, status, e
             )
             globalvars.ipsc_set.add((unitid, clientid))
         else:  # 存在连接
-            logging.getLogger('smartbusclient').debug(
+            logging.getLogger('smartbusclient').info(
                 'IPSC<%s:%s> connection confirmed',
                 unitid, clientid
             )
