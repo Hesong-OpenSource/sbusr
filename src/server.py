@@ -15,11 +15,12 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
-__updated__ = '2015-02-09'
+__updated__ = '2015-02-11'
 
 import sys
 PY3K = sys.version_info[0] > 2
 
+import threading
 import logging.config
 import logging.handlers
 import multiprocessing
@@ -88,6 +89,10 @@ def _smartbus_disconnected(client):
 
 
 def _smartbus_receive_text(client, pack_info, txt):
+    logging.getLogger('smartbusclient').debug(
+        'smartbus receive text(client=%s, pack_info=%s, txt=%s)',
+        client, pack_info, txt
+    )
     globalvars.executor.put(client, pack_info, txt)
 
 
@@ -198,23 +203,31 @@ def run(args):
         (r"/sys/reset", webhandlers.ResetHandler),
         (r"/api/flow", webhandlers.FlowHandler),
     ])
-    webserver = httpserver.HTTPServer(application)
-    webserver.listen(*settings.WEBSERVER_LISTEN)
-    logging.info('http server listening at %s ...', settings.WEBSERVER_LISTEN)
+    if args.no_web_server:
+        logging.warning('web server module was disabled')
+    else:
+        webserver = httpserver.HTTPServer(application)
+        webserver.listen(*settings.WEBSERVER_LISTEN)
+        logging.info('http server listening at %s ...', settings.WEBSERVER_LISTEN)
     logging.info('ioloop.IOLoop.instance().start() >>>')
     ioloop.IOLoop.instance().start()
     logging.warning('ioloop.IOLoop.instance().start() <<<')
 
     # stop
     # stop executor
-    logging.warning('stopping...')
-    logging.warning('stopping executor...')
-    globalvars.executor.stop()
-    logging.warning('executor stopped!')
-    # stop main_logging_listener
-    logging.warning('stopping main logging listener...')
-    globalvars.main_logging_listener.stop()
-    logging.warning('main logging listener stopped!')
+    _stopped_cond.acquire()
+    try:
+        logging.warning('stopping...')
+        logging.warning('stopping executor...')
+        globalvars.executor.stop()
+        logging.warning('executor stopped!')
+        # stop main_logging_listener
+        logging.warning('stopping main logging listener...')
+        globalvars.main_logging_listener.stop()
+        logging.warning('main logging listener stopped!')
+        _stopped_cond.notify()
+    finally:
+        _stopped_cond.release()
 
 
 def stop():
@@ -223,4 +236,14 @@ def stop():
     .. attention:: 该函数是异步的，在它执行后， :func:`server.run` 将会退出 IOLoop ，但是 `stop` 的返回与之无关。
     '''
     logging.warning('stop()')
-    ioloop.IOLoop.instance().stop()
+    _stopped_cond.acquire()
+    try:
+        ioloop.IOLoop.instance().stop()
+        logging.debug('waiting for stopping')
+        _stopped_cond.wait()
+        logging.debug('stopped')
+    finally:
+        _stopped_cond.release()
+
+
+_stopped_cond = threading.Condition()

@@ -57,12 +57,14 @@ settings.SMARTBUS_CONFIG = {
 }
 
 prog_args = Object
-prog_args.verbose = True
+prog_args.verbose = False
+prog_args.no_web_server = True
 
 class TestRpc(unittest.TestCase):
 
     def setUp(self):
-        settings.WEBSERVER_LISTEN = (random.randint(60000, 65535), '127.0.0.1')
+        logging.info('TestRpc.setUp')
+#         settings.WEBSERVER_LISTEN = (random.randint(60000, 65535), '127.0.0.1')
 
         def server_thread_rountine():
             self._thread_started_cond.acquire()
@@ -84,6 +86,7 @@ class TestRpc(unittest.TestCase):
         time.sleep(1)
 
     def tearDown(self):
+        logging.info('TestRpc.tearDown')
         server.stop()
 
 
@@ -218,6 +221,7 @@ class TestRpc(unittest.TestCase):
             # sleep to wait the result
             time.sleep(0.1)
             # check the result
+            self.assertTrue(smbclt.sendNotify, 'FUCK!!!!!!! it is NULL!!!!!!')
             call_args = smbclt.sendNotify.call_args[0]
             self.assertEqual(call_args[0], pack.srcUnitId)
             self.assertEqual(call_args[1], pack.srcUnitClientId)
@@ -246,6 +250,8 @@ class TestRpc(unittest.TestCase):
             # sleep to wait the result
             time.sleep(0.1)
             # check the result
+            logging.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            logging.warning('smbclt.sendNotify.call_args = %s', smbclt.sendNotify.call_args)
             call_args = smbclt.sendNotify.call_args[0]
             self.assertEqual(call_args[0], pack.srcUnitId)
             self.assertEqual(call_args[1], pack.srcUnitClientId)

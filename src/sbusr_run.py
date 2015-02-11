@@ -38,6 +38,12 @@ Windows（需要权限与文件关联）::
 .. option:: -h, --help
 
     输出帮助信息
+
+.. option:: -W, --no-web-server
+
+    不启动该程序的内嵌web服务器模块
+    
+    .. warning:: 如果不启动Web服务器模块，则无法调用流程，也无法通过命令重启子进程。
 '''
 
 from __future__ import print_function, unicode_literals, absolute_import
@@ -52,7 +58,7 @@ from argparse import RawDescriptionHelpFormatter
 __all__ = []
 __version__ = 0.1
 __date__ = '2013-12-13'
-__updated__ = '2015-01-16'
+__updated__ = '2015-02-11'
 
 DEBUG = 0
 TESTRUN = 0
@@ -112,6 +118,7 @@ runtime:
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
         parser.add_argument("-v", "--verbose", action="store_true", help="output verbose logging text.")
+        parser.add_argument('-W', '--no-web-server', action='store_true', help="run the program without starting the web server.")
 
         # Process arguments
         args = parser.parse_args()

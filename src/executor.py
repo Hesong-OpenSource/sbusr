@@ -177,8 +177,7 @@ class Executor(QueueListener):
                         if globalvars.prog_args.verbose:
                             self._logger.exception(
                                 'error callback:\n    duration=%s\n    request=%s:\n  %s %s',
-                                time.time() -
-                                begin_time, record, type(error), error
+                                time.time() - begin_time, record, type(error), error
                             )
                         else:
                             self._logger.error(
@@ -230,8 +229,7 @@ class Executor(QueueListener):
         except Exception as e:
             if globalvars.prog_args.verbose:
                 self._logger.exception(
-                    'error occurred in handle():\n    request=%s',
-                    record)
+                    'error occurred in handle():\n    request=%s', record)
             else:
                 self._logger.error(
                     'error occurred in handle():\n    error: %s %s',
