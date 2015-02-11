@@ -90,7 +90,7 @@ class TestRpc(unittest.TestCase):
     def test_echo(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
             smbclt = mock_smbipc_cls.return_value
-            smbclt.send = MagicMock()
+            smbclt.sendNotify = MagicMock()
             #
             id_ = uuid.uuid1().hex
             req = {
@@ -118,7 +118,7 @@ class TestRpc(unittest.TestCase):
     def test_classmethod_1(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
             smbclt = mock_smbipc_cls.return_value
-            smbclt.send = MagicMock()
+            smbclt.sendNotify = MagicMock()
             #
             id_ = uuid.uuid1().hex
             req = {
@@ -146,7 +146,7 @@ class TestRpc(unittest.TestCase):
     def test_classmethod_2(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
             smbclt = mock_smbipc_cls.return_value
-            smbclt.send = MagicMock()
+            smbclt.sendNotify = MagicMock()
             #
             id_ = uuid.uuid1().hex
             req = {
@@ -174,7 +174,7 @@ class TestRpc(unittest.TestCase):
     def test_submodfunc(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
             smbclt = mock_smbipc_cls.return_value
-            smbclt.send = MagicMock()
+            smbclt.sendNotify = MagicMock()
             #
             id_ = uuid.uuid1().hex
             req = {
@@ -202,7 +202,7 @@ class TestRpc(unittest.TestCase):
     def test_nonexistfunc1(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
             smbclt = mock_smbipc_cls.return_value
-            smbclt.send = MagicMock()
+            smbclt.sendNotify = MagicMock()
             #
             id_ = uuid.uuid1().hex
             req = {
@@ -230,7 +230,7 @@ class TestRpc(unittest.TestCase):
     def test_nonexistfunc2(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
             smbclt = mock_smbipc_cls.return_value
-            smbclt.send = MagicMock()
+            smbclt.sendNotify = MagicMock()
             #
             id_ = uuid.uuid1().hex
             req = {
@@ -258,7 +258,7 @@ class TestRpc(unittest.TestCase):
     def test_wrongparams(self):
         with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
             smbclt = mock_smbipc_cls.return_value
-            smbclt.send = MagicMock()
+            smbclt.sendNotify = MagicMock()
             #
             id_ = uuid.uuid1().hex
             req = {
