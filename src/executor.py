@@ -264,7 +264,7 @@ def _poolfunc(method, args=(), kwds={}):
                     raise
     _logger.debug('>>> %s() <%s> args=%s kwds=%s', method, curr_obj, args, kwds)
     result = curr_obj(*args, **kwds)
-    _logger.debug('<<< %s() -> ', method, result)
+    _logger.debug('<<< %s() -> %s', method, result)
     return result
 
 
