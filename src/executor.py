@@ -212,7 +212,7 @@ class Executor(QueueListener):
                 pass  # end of _error_callback
 
                 if globalvars.prog_args.verbose:
-                    self._logger.debug('pool.apply_async(%s)', _method)
+                    self._logger.debug('pool.apply_async(%s, %s, %s)', _method, _args, _kwargs)
                 if sys.version_info[0] < 3:
                     self._pool.apply_async(
                         func=partial(_poolfunc, _method),
