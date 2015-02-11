@@ -12,7 +12,7 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
-__updated__ = '2015-01-16'
+__updated__ = '2015-02-11'
 
 import sys
 PY3K = sys.version_info[0] > 2
@@ -212,17 +212,19 @@ class Executor(QueueListener):
                 pass  # end of _error_callback
 
                 if globalvars.prog_args.verbose:
-                    self._logger.debug(
-                        'apply_async to %s', _poolfunc)
+                    self._logger.debug('pool.apply_async(%s)', _method)
                 if sys.version_info[0] < 3:
                     self._pool.apply_async(
-                        partial(_poolfunc, _method),
-                        _args, _kwargs, _callback
+                        func=partial(_poolfunc, _method),
+                        args=(_args, _kwargs),
+                        callback=_callback
                     )
                 else:
                     self._pool.apply_async(
-                        partial(_poolfunc, _method),
-                        _args, _kwargs, _callback, _error_callback
+                        func=partial(_poolfunc, _method),
+                        args=(_args, _kwargs),
+                        callback=_callback,
+                        error_callback=_error_callback
                     )
 
         except Exception as e:
@@ -240,7 +242,12 @@ mod_map_lock = threading.Lock()
 mod_map = {}
 
 
-def _poolfunc(method, *args, **kwargs):
+def _poolfunc(method, args=(), kwds={}):
+    '''该函数包装了个子进程池调用动态RPC方法
+    
+    :param str method: RPC 方法名。该方法对应了 :pack:`methods` 下的可调用对象
+    '''
+    _logger = logging.getLogger('executor.poolfunc')
     mothods_mod_name = 'methods'
     curr_obj = importlib.import_module(mothods_mod_name)
     loaded_parts = [mothods_mod_name]
@@ -255,7 +262,10 @@ def _poolfunc(method, *args, **kwargs):
                     curr_obj = importlib.import_module('.'.join(loaded_parts))
                 else:
                     raise
-    return curr_obj(*args, **kwargs)
+    _logger.debug('>>> %s() <%s> args=%s kwds=%s', method, curr_obj, args, kwds)
+    result = curr_obj(*args, **kwds)
+    _logger.debug('<<< %s() -> ', method, result)
+    return result
 
 
 def _subproc_init(progargs, logging_queue, logging_root_level):
