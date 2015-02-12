@@ -1,4 +1,4 @@
-API
+api
 ===
 
 .. toctree::
@@ -9,6 +9,7 @@ API
    jsonrpc
    loggingqueue
    methods
+   sbusr_reset
    sbusr_run
    server
    settings
