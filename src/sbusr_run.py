@@ -58,7 +58,7 @@ from argparse import RawDescriptionHelpFormatter
 __all__ = []
 __version__ = 0.1
 __date__ = '2013-12-13'
-__updated__ = '2015-02-11'
+__updated__ = '2015-02-13'
 
 DEBUG = 0
 TESTRUN = 0
@@ -150,8 +150,7 @@ runtime:
 
 if __name__ == "__main__":
     if DEBUG:
-        sys.argv.append("-m")
-#         sys.argv.append("-v")
+        sys.argv.append("-v")
 #         sys.argv.append("-r")
     if TESTRUN:
         import doctest

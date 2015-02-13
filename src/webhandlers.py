@@ -6,7 +6,7 @@
 :author: 刘雪彦 <lxy@hesong.net>
 '''
 
-__updated__ = '2015-01-15'
+__updated__ = '2015-02-13'
 
 import json
 import time
@@ -41,15 +41,22 @@ class FlowHandler(RequestHandler):
 
     @coroutine
     def post(self, *args, **kwargs):
+        _logger = logging.getLogger(self.__class__.__name__)
         try:
+            post_txt = to_str(self.request.body, 'utf-8')
+            _logger.info(post_txt)
             # 获取JSONRPC数据
-            data = json.loads(to_str(self.request.body, 'utf-8'))
+            data = json.loads(post_txt)
             server = data.get('server')
             process = data.get('process')
             project = str(data['project'])
             flow = str(data['flow'])
             params = data.get('params')
             # 确定用于启动该流程的IPSC
+            # IPC 客户端始终优先使用本地IPSC!
+            if (server is None) and globalvars.ipc_smartbusclient:
+                server = globalvars.ipc_smartbusclient.unitid
+            # 选择一个IPSC，调用它上面的流程
             if (server is None) and (process is None):
                 server, process = random.sample(globalvars.ipsc_set, 1)[0]
             elif (server is not None) and (process is None):
@@ -58,48 +65,58 @@ class FlowHandler(RequestHandler):
                 for ipsc in globalvars.ipsc_set:
                     if ipsc[0] == server:
                         _lst.append(ipsc)
-                server, process = random.choice(_lst)
+                if _lst:
+                    _, process = random.choice(_lst)
+                else:
+                    if globalvars.ipc_smartbusclient:
+                        _logger.warning('can not find any IPSC instance whose smartbus unit is %s. try to start flow of the first local IPSC process', server)
+                        process = 0
+                    else:
+                        _logger.error('can not find any IPSC instance whose smartbus unit is %s', server)
             elif (server is None) and (process is not None):
                 _lst = []
                 process = int(process)
                 for ipsc in globalvars.ipsc_set:
                     if ipsc[1] == process:
                         _lst.append(ipsc)
-                server, process = random.choice(_lst)
+                server, _ = random.choice(_lst)
             else:
                 server = int(server)
                 process = int(process)
-            #
             # 确定用于发送该请求的客户端
             if globalvars.ipc_smartbusclient:
                 # 总是优先使用 IPC 客户端
                 _sbc = globalvars.ipc_smartbusclient
             else:
                 _sbc = random.choice(globalvars.net_smartbusclients)
+            # 调用流程
+            _logger.debug('%s Flow invoking: %s, %s, %s, %s, %s)', _sbc, server, process, project, flow, params)
             ret = _sbc.invokeFlow(server, process, project, flow, params, False)
             self._invoke_id = '{:d}:{:d}:{:s}:{:d}'.format(server, process, project, ret)
-            #
             self._invoking_futures[self._invoke_id] = self._invoke_future = with_timeout(time.time() + settings.FLOW_ACK_TIMEOUT, Future())
             # 开始异步等流程回执
+            _logger.debug('>>> yield Flow invoking(id=%s)', self._invoke_id)
             fres = yield self._invoke_future
+            _logger.debug('<<< yield Flow invoking(id=%s)', self._invoke_id)
             # 流程回执了
             if isinstance(fres, FlowInvokeAck):
                 if fres.ack == 1:  # 调用成功！
+                    _logger.debug('Flow invoking(id=%s) succeed', self._invoke_id)
                     self.finish(fres.msg)
                 else:  # 调用错误！
                     errtxt = 'Flow invoking error response. packinfo={}, project={}, id={}, ack={}, msg={}'\
                         .format(fres.packinfo, fres.project, fres.invokeid, fres.ack, fres.msg)
-                    logging.getLogger(self.__class__.__name__).error(errtxt)
+                    _logger.error(errtxt)
                     raise RuntimeError('{}'.format(errtxt))
             elif isinstance(fres, Exception):
-                logging.getLogger(self.__class__.__name__).error('yiled result of flow-invoke-ack error: %s %s', type(fres), fres)
+                _logger.error('yiled result of flow-invoke-ack error: %s %s', type(fres), fres)
                 raise fres
             else:
                 errtxt = 'Unknown future result {} {}'.format(type(fres), fres)
-                logging.getLogger(self.__class__.__name__).error(errtxt)
+                _logger.error(errtxt)
                 raise RuntimeError(errtxt)
         except:
-            logging.getLogger(self.__class__.__name__).exception('post')
+            _logger.exception('post')
             raise
 
     def on_connection_close(self):
