@@ -58,7 +58,7 @@ from argparse import RawDescriptionHelpFormatter
 __all__ = []
 __version__ = 0.1
 __date__ = '2013-12-13'
-__updated__ = '2015-02-13'
+__updated__ = '2015-02-15'
 
 DEBUG = 0
 TESTRUN = 0
@@ -144,6 +144,10 @@ runtime:
     # startup server
     print('startup server')
     server.run(args)
+    try:
+        server.run(args)
+    except Exception as exc:
+        print('{}'.format(exc), file=sys.stderr)
     print('program terminated')
 
     return 0

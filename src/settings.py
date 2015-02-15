@@ -14,8 +14,8 @@ SMARTBUS_CONFIG = {
     "clients": [
         {
             "localClientId": 0,
-            "localClientType": 19,
-            "masterHost": "10.4.62.45",
+            "localClientType": 18,
+            "masterHost": "192.168.88.30",
             "masterPort": 8089,
             "slaverHost": None,
             "slaverPort": 0,
@@ -76,7 +76,7 @@ SMARTBUS_NOTIFY_TTL = 10000
 '''
 
 WEBSERVER_LISTEN = (
-    8080,  # 监听端口
+    8888,  # 监听端口
     "",  # 监听地址
 )
 """WEB 服务器监听端口与地址.
@@ -111,7 +111,7 @@ FLOW_ACK_TIMEOUT = 15
 LOGGING_CONFIG = {
     "version": 1,
     "root": {
-        "level": "INFO",
+        "level": "DEBUG",
         "handlers": [
             "console",
             "file",

@@ -13,14 +13,17 @@ from __future__ import print_function, unicode_literals
 
 import sys
 import os
-import http.client
+try:
+    from http.client import HTTPConnection
+except ImportError:
+    from httplib import HTTPConnection
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 
 __all__ = []
 __version__ = 0.1
-__updated__ = '2015-02-11'
+__updated__ = '2015-02-15'
 
 DEBUG = 0
 TESTRUN = 0
@@ -84,7 +87,7 @@ def perform(args):
     host = str(settings.WEBSERVER_LISTEN[1]).strip()
     if host == "":
         host = "localhost"
-    conn = http.client.HTTPConnection(host, port)
+    conn = HTTPConnection(host, port)
     conn.request("GET", "/sys/reset")
     res = conn.getresponse()
     data = res.read()

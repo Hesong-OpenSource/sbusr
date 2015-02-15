@@ -15,7 +15,7 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
-__updated__ = '2015-02-11'
+__updated__ = '2015-02-15'
 
 import sys
 PY3K = sys.version_info[0] > 2
@@ -24,6 +24,11 @@ import threading
 import logging.config
 import logging.handlers
 import multiprocessing
+try:
+    from logging.handlers import QueueListener
+except ImportError:
+    from loggingqueue import QueueListener
+    logging.handlers.QueueListener = QueueListener
 from functools import partial
 
 import smartbus.netclient
@@ -206,9 +211,11 @@ def run(args):
     if args.no_web_server:
         logging.warning('web server module was disabled')
     else:
+        logging.info('create http server ...')
         webserver = httpserver.HTTPServer(application)
+        logging.info('http server start listening at %s ...', settings.WEBSERVER_LISTEN)
         webserver.listen(*settings.WEBSERVER_LISTEN)
-        logging.info('http server listening at %s ...', settings.WEBSERVER_LISTEN)
+        logging.info('http server started at %s', settings.WEBSERVER_LISTEN)
     logging.info('ioloop.IOLoop.instance().start() >>>')
     ioloop.IOLoop.instance().start()
     logging.warning('ioloop.IOLoop.instance().start() <<<')
