@@ -96,8 +96,13 @@ class FlowHandler(RequestHandler):
             self._invoking_futures[self._invoke_id] = self._invoke_future = with_timeout(time.time() + settings.FLOW_ACK_TIMEOUT, Future())
             # 开始异步等流程回执
             _logger.debug('>>> yield Flow invoking(id=%s), timeout=%s', self._invoke_id, settings.FLOW_ACK_TIMEOUT)
-            fres = yield self._invoke_future
-            _logger.debug('<<< yield Flow invoking(id=%s)', self._invoke_id)
+            try:
+                fres = yield self._invoke_future
+            except Exception as exc:
+                _logger.error('yield Flow invoking(id=%s) error: %s %s', self._invoke_id, type(exc), exc)
+                raise
+            finally:
+                _logger.debug('<<< yield Flow invoking(id=%s)', self._invoke_id)
             # 流程回执了
             if isinstance(fres, FlowInvokeAck):
                 if fres.ack == 1:  # 调用成功！
@@ -116,7 +121,7 @@ class FlowHandler(RequestHandler):
                 _logger.error(errtxt)
                 raise RuntimeError(errtxt)
         except:
-            _logger.exception('post')
+            _logger.exception('')
             raise
 
     def on_connection_close(self):
