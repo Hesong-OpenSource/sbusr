@@ -6,7 +6,7 @@
 :author: 刘雪彦 <lxy@hesong.net>
 '''
 
-__updated__ = '2015-02-13'
+__updated__ = '2015-02-15'
 
 import json
 import time
@@ -95,7 +95,7 @@ class FlowHandler(RequestHandler):
             self._invoke_id = '{:d}:{:d}:{:s}:{:d}'.format(server, process, project, ret)
             self._invoking_futures[self._invoke_id] = self._invoke_future = with_timeout(time.time() + settings.FLOW_ACK_TIMEOUT, Future())
             # 开始异步等流程回执
-            _logger.debug('>>> yield Flow invoking(id=%s)', self._invoke_id)
+            _logger.debug('>>> yield Flow invoking(id=%s), timeout=%s', self._invoke_id, settings.FLOW_ACK_TIMEOUT)
             fres = yield self._invoke_future
             _logger.debug('<<< yield Flow invoking(id=%s)', self._invoke_id)
             # 流程回执了
