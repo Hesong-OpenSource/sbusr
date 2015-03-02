@@ -71,8 +71,10 @@ SMARTBUS_CONFIG = {
     .. attention:: 仅当 ``type`` 属性为 ``"net"`` 时有效
 '''
 
-SMARTBUS_NOTIFY_TTL = 10000
-'''通过smartbus发送给IPSC流程的notify消息的生存期（ms）
+SMARTBUS_NOTIFY_TTL = 10
+'''通过smartbus发送给IPSC流程的notify消息的生存期（秒），应该是大于0的整数或者浮点数。
+
+.. warning:: 该变量不得删除
 '''
 
 WEBSERVER_LISTEN = (

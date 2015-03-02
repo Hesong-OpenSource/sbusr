@@ -147,7 +147,10 @@ def run(args):
             fmt='%(asctime)s <%(processName)-10s,%(threadName)-10s> %(levelname)-8s %(name)s - %(message)s')
         logging_handler = logging.StreamHandler()
         logging_handler.setFormatter(logging_fmt)
-        logging.root.handlers.clear()
+        if PY3K:
+            logging.root.handlers.clear()
+        else:
+            del logging.root.handlers[:]
         logging.root.handlers.append(logging_handler)
     ################################################
     # 初始化 logging 监听器/队列
