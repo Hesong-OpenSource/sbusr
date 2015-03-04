@@ -15,7 +15,7 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
-__updated__ = '2015-02-15'
+__updated__ = '2015-03-04'
 
 import sys
 PY3K = sys.version_info[0] > 2
@@ -118,6 +118,7 @@ def _smartbus_invoke_flow_ack(packInfo, project, invokeId, ack, msg):
     except:
         logging.getLogger('smartbusclient').exception(
             '_smartbus_invoke_flow_ack')
+
 
 def run(args):
     '''运行服务

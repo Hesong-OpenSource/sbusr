@@ -12,7 +12,7 @@
 
 from __future__ import print_function, unicode_literals, absolute_import
 
-__updated__ = '2015-02-15'
+__updated__ = '2015-03-04'
 
 import sys
 PY3K = sys.version_info[0] > 2
@@ -85,7 +85,43 @@ class Executor(QueueListener):
             self._logger = logging.getLogger(self.__class__.__name__)
 
     def put(self, client, pack_info, txt):
-        self.queue.put((client, pack_info, txt, time.time()))
+        if globalvars.prog_args.verbose:
+            self._logger.debug('put() >>>. qsize=%s\n    client=%s\n    pack_info=%s\n    txt=%s', self.queue.qsize(), client, pack_info, txt)
+        try:
+            recv_time = time.time()
+            _id = None
+            # 解析 JSON RPC
+            req, _, _ = jsonrpc.parse(txt)
+            if req:
+                _id = req.get('id')
+                _method = req['method']
+                _args = req['args']
+                _kwargs = req['kwargs']
+                self.queue.put_nowait((recv_time, client, pack_info, _id, _method, _args, _kwargs))
+        except Exception as e:
+            if globalvars.prog_args.verbose:
+                self._logger.exception('put')
+            else:
+                self._logger.error('put() error: %s %s', type(e), e)
+            if isinstance(e, jsonrpc.Error):  # 处理 jsonrpc.Error 异常
+                _id = e.id
+                res = e.to_dict()
+            else:  # 处理其它异常
+                res = {
+                    'jsonrpc': jsonrpc.jsonrpc_version,
+                    'error': {
+                        'code':-32500,
+                        'message': '{} {}'.format(type(e), e),
+                        'data': None,
+                    }
+                }
+                if _id:
+                    res['id'] = _id
+            if _id:
+                data = json.dumps(res)
+                client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
+            # 重新抛出异常
+            raise
 
     def start(self):
         self._logger.info('start() >>>. pool arguments: %s', self._pool_kdargs)
@@ -107,88 +143,22 @@ class Executor(QueueListener):
         self._logger.info('stop() <<<')
 
     def handle(self, record):
-        if globalvars.prog_args.verbose:
-            self._logger.debug('queue.qsize=%s. record=%s', self.queue.qsize(), record)
-        request = None
         try:
-            client, pack_info, txt, begin_time = record
-            # 解析 JSON RPC
-            try:
-                request, _, _ = jsonrpc.parse(txt)
-            except Exception as e:
-                if globalvars.prog_args.verbose:
-                    self._logger.exception(
-                        'JSONRPC parse error: %s %s', type(e), e)
-                else:
-                    self._logger.error(
-                        'JSONRPC parse error: %s %s', type(e), e)
-            # 执行 RPC 请求
-            if request:
-                _id = request.get('id')
-                _method = request['method']
-                _args = request['args']
-                _kwargs = request['kwargs']
-                if globalvars.prog_args.verbose:
-                    self._logger.debug('[%s]: request: method=%s', _id, _method)
+            begin_time, client, pack_info, _id, _method, _args, _kwargs = record
+            if globalvars.prog_args.verbose:
+                self._logger.debug('handled: qsize=%s. [%s] %s %s %s', self.queue.qsize(), _id, _method, _args, _kwargs)
+            else:
+                self._logger.debug('handled: [%s] %s', _id, _method)
 
-                def _callback(result):
-                    try:
-                        if isinstance(result, Exception):  # 如果返回结果是异常，就返回错误结果，并抛出异常
-                            error = result
-                            if _id:  # 如果有 RPC ID ，就需要返回错误结果
-                                if isinstance(error, jsonrpc.Error):  # 处理 jsonrpc.Error 异常
-                                    response = error.to_dict()
-                                    response['id'] = _id
-                                else:  # 处理其它异常
-                                    response = {
-                                        'jsonrpc': jsonrpc.jsonrpc_version,
-                                        'id': _id,
-                                        'error': {
-                                            'code':-32500,
-                                            'message': '{} {}'.format(type(error), error),
-                                            'data': None,
-                                        }
-                                    }
-                                data = json.dumps(response)
-                                client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
-                            raise error  # 抛出异常
-                        if globalvars.prog_args.verbose:
-                            self._logger.debug(
-                                '[%s]: call back:\n    result=%s %s\n    duration=%s\n    request=%s',
-                                _id, type(result), result, time.time() - begin_time, record
-                            )
-                        if _id:  # 如果有 RPC ID ，就需要返回执行结果
-                            response = {
-                                'jsonrpc': jsonrpc.jsonrpc_version,
-                                'id': _id,
-                                'result': result,
-                            }
-                            data = json.dumps(response)
-                            client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
-                    except Exception as e:
-                        if globalvars.prog_args.verbose:
-                            self._logger.exception(
-                                '[%s]: error occurred in handle._callback():\n    request=%s', _id, record)
-                        else:
-                            self._logger.error(
-                                '[%s]: error occurred in handle._callback():\n    error: %s %s', _id, type(e), e)
-                pass  # end of _callback
-
-                def _error_callback(error):
-                    try:
-                        # Python3.4 issue20980: In multiprocessing.pool,
-                        # ExceptionWithTraceback should derive from Exception
-                        if not isinstance(error, Exception):
-                            error = error.exc
-                        self._logger.error(
-                            '[%s]: error callback:\n    %s %s\n    duration=%s\n    request=%s\n  %s %s',
-                            _id, type(error), error, time.time() - begin_time, record, type(error), error
-                        )
+            def _callback(result):
+                try:
+                    if isinstance(result, Exception):  # 如果返回结果是异常，就返回错误结果，并抛出异常
+                        error = result
                         if _id:  # 如果有 RPC ID ，就需要返回错误结果
-                            if isinstance(error, jsonrpc.Error):  # JSONRPC 异常
+                            if isinstance(error, jsonrpc.Error):  # 处理 jsonrpc.Error 异常
                                 response = error.to_dict()
                                 response['id'] = _id
-                            else:  # 其它异常
+                            else:  # 处理其它异常
                                 response = {
                                     'jsonrpc': jsonrpc.jsonrpc_version,
                                     'id': _id,
@@ -200,33 +170,84 @@ class Executor(QueueListener):
                                 }
                             data = json.dumps(response)
                             client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
-                    except Exception as e:
-                        if globalvars.prog_args.verbose:
-                            self._logger.exception(
-                                '[%s]: error occurred in handle._error_callback():\n    request=%s', _id, record)
-                        else:
-                            self._logger.error(
-                                '[%s]: error occurred in handle._error_callback():\n    error=%s', _id, e)
-                        raise
-                pass  # end of _error_callback
+                        raise error  # 抛出异常
+                    if globalvars.prog_args.verbose:
+                        self._logger.debug(
+                            '[%s]: call back:\n    result=%s %s\n    duration=%s\n    request=%s\n    qsize=%s',
+                            _id, type(result), result, time.time() - begin_time, record,
+                            self.queue.qsize()
+                        )
+                    if _id:  # 如果有 RPC ID ，就需要返回执行结果
+                        response = {
+                            'jsonrpc': jsonrpc.jsonrpc_version,
+                            'id': _id,
+                            'result': result,
+                        }
+                        data = json.dumps(response)
+                        client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
+                except Exception as e:
+                    if globalvars.prog_args.verbose:
+                        self._logger.exception(
+                            '[%s]: error occurred in handle._callback():\n    request=%s', _id, record)
+                    else:
+                        self._logger.error(
+                            '[%s]: error occurred in handle._callback():\n    error: %s %s', _id, type(e), e)
+            pass  # end of _callback
 
-                if globalvars.prog_args.verbose:
-                    self._logger.debug('[%s]: pool.apply_async(%s, %s, %s)', _id, _method, _args, _kwargs)
-                if sys.version_info[0] < 3:
-                    self._pool.apply_async(
-                        func=partial(_poolfunc, _id, _method),
-                        args=(_args, _kwargs),
-                        callback=_callback
+            def _error_callback(error):
+                try:
+                    # Python3.4 issue20980: In multiprocessing.pool,
+                    # ExceptionWithTraceback should derive from Exception
+                    if not isinstance(error, Exception):
+                        error = error.exc
+                    self._logger.error(
+                        '[%s]: error callback:\n    %s %s\n    duration=%s\n    request=%s\n  %s %s\n    qsize=%s',
+                        _id, type(error), error, time.time() - begin_time, record, type(error), error,
+                        self.queue.qsize()
                     )
-                else:
-                    self._pool.apply_async(
-                        func=partial(_poolfunc, _id, _method),
-                        args=(_args, _kwargs),
-                        callback=_callback,
-                        error_callback=_error_callback
-                    )
-                if globalvars.prog_args.verbose:
-                    self._logger.debug('[%s]: pool.apply_async OK', _id)
+                    if _id:  # 如果有 RPC ID ，就需要返回错误结果
+                        if isinstance(error, jsonrpc.Error):  # JSONRPC 异常
+                            response = error.to_dict()
+                            response['id'] = _id
+                        else:  # 其它异常
+                            response = {
+                                'jsonrpc': jsonrpc.jsonrpc_version,
+                                'id': _id,
+                                'error': {
+                                    'code':-32500,
+                                    'message': '{} {}'.format(type(error), error),
+                                    'data': None,
+                                }
+                            }
+                        data = json.dumps(response)
+                        client.sendNotify(pack_info.srcUnitId, pack_info.srcUnitClientId, None, _id, 0, settings.SMARTBUS_NOTIFY_TTL, data)
+                except Exception as e:
+                    if globalvars.prog_args.verbose:
+                        self._logger.exception(
+                            '[%s]: error occurred in handle._error_callback():\n    request=%s', _id, record)
+                    else:
+                        self._logger.error(
+                            '[%s]: error occurred in handle._error_callback():\n    error=%s', _id, e)
+                    raise
+            pass  # end of _error_callback
+
+            if globalvars.prog_args.verbose:
+                self._logger.debug('handle: [%s] pool.apply_async(%s, %s, %s)', _id, _method, _args, _kwargs)
+            if sys.version_info[0] < 3:
+                self._pool.apply_async(
+                    func=partial(_poolfunc, _id, _method, time.time()),
+                    args=(_args, _kwargs),
+                    callback=_callback
+                )
+            else:
+                self._pool.apply_async(
+                    func=partial(_poolfunc, _id, _method, time.time()),
+                    args=(_args, _kwargs),
+                    callback=_callback,
+                    error_callback=_error_callback
+                )
+            if globalvars.prog_args.verbose:
+                self._logger.debug('handle [%s] pool.apply_async OK. qsize=%s', _id, self.queue.qsize())
 
         except Exception as e:
             if globalvars.prog_args.verbose:
@@ -234,23 +255,21 @@ class Executor(QueueListener):
                     'error occurred in handle():\n    request=%s', record)
             else:
                 self._logger.error(
-                    'error occurred in handle():\n    error: %s %s',
+                    'handle:\n    error: %s %s',
                     type(e), e)
 
 
-mod_map_lock = threading.Lock()
-mod_map = {}
-
-
-def _poolfunc(id_, method, args=(), kwds={}):
+def _poolfunc(id_, method, apply_time, args=(), kwds={}):
     '''该函数包装了个子进程池调用动态RPC方法
     
     :param id_: RPC的ID，仅仅用于日志记录
+    :int apply_time: 任务加入队列的时间，由 ``time.time()`` 生成
     :param str method: RPC 方法名。该方法对应了 :pack:`methods` 下的可调用对象
     
     .. warning:: 该方法在子进程中执行！
     '''
     _logger = logging.getLogger('executor.poolfunc')
+    _logger.debug('>>> [%s]: %s(). applying duration=%s', id_, method, time.time() - apply_time)
     try:
         mothods_mod_name = 'methods'
         curr_obj = importlib.import_module(mothods_mod_name)
@@ -268,13 +287,9 @@ def _poolfunc(id_, method, args=(), kwds={}):
                         raise
         if globalvars.prog_args.verbose:
             _logger.debug('>>> [%s]: %s() %s args=%s kwds=%s', id_, method, curr_obj, args, kwds)
-        else:
-            _logger.debug('>>> [%s]: %s()', id_, method)
         result = curr_obj(*args, **kwds)
         if globalvars.prog_args.verbose:
             _logger.debug('<<< [%s]: %s() -> %s', id_, method, result)
-        else:
-            _logger.debug('<<< [%s]: %s()', id_, method)
         return result
     except Exception as exc:
         if globalvars.prog_args.verbose:
@@ -282,6 +297,7 @@ def _poolfunc(id_, method, args=(), kwds={}):
         else:
             _logger.error('[%s]: exception occurred in method(): %s %s', id_, type(exc), exc)
         raise
+    _logger.debug('<<< [%s]: %s()', id_, method)
 
 
 def _subproc_init(progargs, logging_queue, logging_root_level):
@@ -293,3 +309,7 @@ def _subproc_init(progargs, logging_queue, logging_root_level):
     logging.root.setLevel(logging_root_level)
     logging.info('subprocess initialize')
     globalvars.prog_args = progargs
+
+
+mod_map_lock = threading.Lock()
+

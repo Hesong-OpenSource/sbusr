@@ -23,6 +23,8 @@ import settings
 import server
 import random
 
+SLEEPS = 2.5
+
 logging_fmt = logging.Formatter(fmt='%(asctime)s <%(processName)-10s,%(threadName)-10s> %(levelname)-8s %(name)s - %(message)s')
 logging_handler = logging.StreamHandler()
 logging_handler.setFormatter(logging_fmt)
@@ -57,7 +59,7 @@ settings.SMARTBUS_CONFIG = {
 }
 
 prog_args = Object
-prog_args.verbose = False
+prog_args.verbose = True
 prog_args.no_web_server = True
 
 class TestRpc(unittest.TestCase):
@@ -65,6 +67,8 @@ class TestRpc(unittest.TestCase):
     def setUp(self):
         logging.info('TestRpc.setUp')
 #         settings.WEBSERVER_LISTEN = (random.randint(60000, 65535), '127.0.0.1')
+
+        settings.EXECUTOR_CONFIG['queue_maxsize'] = 1
 
         def server_thread_rountine():
             self._thread_started_cond.acquire()
@@ -107,7 +111,9 @@ class TestRpc(unittest.TestCase):
             pack = PackInfo(*packinfo_args)
             server._smartbus_receive_text(smbclt, pack, json.dumps(req))
             # sleep to wait the result
-            time.sleep(0.1)
+            logging.debug('sleep...')
+            time.sleep(SLEEPS)
+            logging.debug('sleep ok')
             # check the result
             call_args = smbclt.sendNotify.call_args[0]
             self.assertEqual(call_args[0], pack.srcUnitId)
@@ -135,7 +141,7 @@ class TestRpc(unittest.TestCase):
             pack = PackInfo(*packinfo_args)
             server._smartbus_receive_text(smbclt, pack, json.dumps(req))
             # sleep to wait the result
-            time.sleep(0.1)
+            time.sleep(SLEEPS)
             # check the result
             call_args = smbclt.sendNotify.call_args[0]
             self.assertEqual(call_args[0], pack.srcUnitId)
@@ -163,7 +169,7 @@ class TestRpc(unittest.TestCase):
             pack = PackInfo(*packinfo_args)
             server._smartbus_receive_text(smbclt, pack, json.dumps(req))
             # sleep to wait the result
-            time.sleep(0.1)
+            time.sleep(SLEEPS)
             # check the result
             call_args = smbclt.sendNotify.call_args[0]
             self.assertEqual(call_args[0], pack.srcUnitId)
@@ -191,7 +197,7 @@ class TestRpc(unittest.TestCase):
             pack = PackInfo(*packinfo_args)
             server._smartbus_receive_text(smbclt, pack, json.dumps(req))
             # sleep to wait the result
-            time.sleep(0.1)
+            time.sleep(SLEEPS)
             # check the result
             call_args = smbclt.sendNotify.call_args[0]
             self.assertEqual(call_args[0], pack.srcUnitId)
@@ -219,7 +225,7 @@ class TestRpc(unittest.TestCase):
             pack = PackInfo(*packinfo_args)
             server._smartbus_receive_text(smbclt, pack, json.dumps(req))
             # sleep to wait the result
-            time.sleep(0.1)
+            time.sleep(SLEEPS)
             # check the result
             self.assertTrue(smbclt.sendNotify, 'FUCK!!!!!!! it is NULL!!!!!!')
             call_args = smbclt.sendNotify.call_args[0]
@@ -248,7 +254,7 @@ class TestRpc(unittest.TestCase):
             pack = PackInfo(*packinfo_args)
             server._smartbus_receive_text(smbclt, pack, json.dumps(req))
             # sleep to wait the result
-            time.sleep(0.1)
+            time.sleep(SLEEPS)
             # check the result
             logging.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
             logging.warning('smbclt.sendNotify.call_args = %s', smbclt.sendNotify.call_args)
@@ -278,7 +284,7 @@ class TestRpc(unittest.TestCase):
             pack = PackInfo(*packinfo_args)
             server._smartbus_receive_text(smbclt, pack, json.dumps(req))
             # sleep to wait the result
-            time.sleep(0.1)
+            time.sleep(SLEEPS)
             # check the result
             call_args = smbclt.sendNotify.call_args[0]
             self.assertEqual(call_args[0], pack.srcUnitId)
@@ -288,6 +294,86 @@ class TestRpc(unittest.TestCase):
             self.assertEqual(res["id"], req["id"])
             print(res)
             self.assertIn('error', res)
+
+
+    def test_wrongrpcformat(self):
+        with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
+            smbclt = mock_smbipc_cls.return_value
+            smbclt.sendNotify = MagicMock()
+            #
+            id_ = uuid.uuid1().hex
+            req = {
+                "id": id_,
+                "boo": "foo",
+                "argss": [1, 2, 3],
+            }
+            #
+            packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
+            pack = PackInfo(*packinfo_args)
+
+            def _startrpc():
+                server._smartbus_receive_text(smbclt, pack, json.dumps(req))
+
+            threading.Thread(target=_startrpc).start()
+
+            # sleep to wait the result
+            time.sleep(SLEEPS)
+            # check the result
+            call_args = smbclt.sendNotify.call_args[0]
+            self.assertEqual(call_args[0], pack.srcUnitId)
+            self.assertEqual(call_args[1], pack.srcUnitClientId)
+            self.assertEqual(call_args[3], id_)
+            res = json.loads(call_args[6])
+            self.assertEqual(res["id"], req["id"])
+            print(res)
+            self.assertIn('error', res)
+
+
+    def test_queuefull(self):
+        try:
+            import queue
+        except ImportError:
+            import Queue as queue
+        with patch('smartbus.ipcclient.Client') as mock_smbipc_cls:
+            smbclt = mock_smbipc_cls.return_value
+            smbclt.sendNotify = MagicMock()
+            #
+            packinfo_args = 1, 2, 3, 4, 5, 6  # srcUnitId, srcUnitClientId, srcUnitClientType, dstUnitId, dstUnitClientId, dstUnitClientType
+            pack = PackInfo(*packinfo_args)
+
+            #
+            id_ = uuid.uuid1().hex
+            req = {
+                "id": id_,
+                "method": "sleep",
+                "params": [1],
+            }
+            server._smartbus_receive_text(smbclt, pack, json.dumps(req))
+            #
+            id_ = uuid.uuid1().hex
+            req = {
+                "id": id_,
+                "method": "b",
+                "params": [],
+            }
+            exc = None
+            try:
+                server._smartbus_receive_text(smbclt, pack, json.dumps(req))
+            except queue.Full as e:
+                exc = e
+            self.assertIsNotNone(exc)
+#             # sleep to wait the result
+#             time.sleep(SLEEPS)
+#             # check the result
+#             call_args = smbclt.sendNotify.call_args[0]
+#             call_args = smbclt.sendNotify.call_args[0]
+#             self.assertEqual(call_args[0], pack.srcUnitId)
+#             self.assertEqual(call_args[1], pack.srcUnitClientId)
+#             self.assertEqual(call_args[3], id_)
+#             res = json.loads(call_args[6])
+#             self.assertEqual(res["id"], req["id"])
+#             print(res)
+#             self.assertIn('Full', res)
 
 
 if __name__ == "__main__":
